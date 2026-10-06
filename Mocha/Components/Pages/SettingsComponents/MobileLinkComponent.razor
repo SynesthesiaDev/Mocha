@@ -1,0 +1,156 @@
+@using global::Mocha.Models
+@using global::Mocha.Util
+@using Serilog
+@inject MochaContext context
+@rendermode InteractiveServer
+@inherits HasContext
+
+@code {
+    private string? rawApiToken;
+    private DateTimeOffset expiresAt;
+    private TimeSpan remaining;
+    private ApiToken? lastApiToken;
+
+    private CancellationTokenSource? countdownCts;
+    private Guid? tokenOwner;
+
+    private bool isExpired => remaining <= TimeSpan.Zero;
+
+    protected override void OnContextChanged()
+    {
+        if (context.User is not { } user) return;
+
+        // Only regenerate when the user actually changes, or we have no token yet.
+        // Otherwise an unrelated NotifyChanged() wipes the QR the user is looking at.
+        if (rawApiToken is not null && tokenOwner == user.Guid) return;
+
+        tokenOwner = user.Guid;
+        generateToken();
+        startCountdown();
+        _ = cleanupExpiredTokensAsync();
+    }
+
+    private void generateToken()
+    {
+        if (context.User is not { } user) return;
+
+        if (lastApiToken is not null)
+            ApiToken.DB_COLLECTION.Delete(lastApiToken.Hash);
+
+        expiresAt = DateTimeOffset.Now.AddMinutes(1);
+        rawApiToken = ApiToken.GetRandom();
+        var hash = MochaUtils.HashToken(rawApiToken);
+        lastApiToken = new ApiToken(hash, expiresAt, [ApiToken.Scope.MobileLink], user.Guid);
+        ApiToken.DB_COLLECTION.Insert(hash, lastApiToken);
+        remaining = expiresAt - DateTimeOffset.Now;
+    }
+
+    private void startCountdown()
+    {
+        countdownCts?.Cancel();
+        countdownCts?.Dispose();
+        countdownCts = new CancellationTokenSource();
+        _ = runCountdownAsync(countdownCts.Token);
+    }
+
+    private async Task runCountdownAsync(CancellationToken ct)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(ct))
+            {
+                remaining = expiresAt - DateTimeOffset.Now;
+                if (remaining < TimeSpan.Zero) remaining = TimeSpan.Zero;
+
+                if (context.User is { } user)
+                {
+                    var fresh = User.DB_COLLECTION.Find(user.Guid);
+                    if (fresh.Settings.MobileLinkSession is not null &&
+                        user.Settings.MobileLinkSession is null)
+                    {
+                        context.SetUser(fresh);
+                        return;
+                    }
+                }
+
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private void refresh()
+    {
+        generateToken();
+    }
+
+    private static async Task cleanupExpiredTokensAsync()
+    {
+        await Task.Run(() =>
+        {
+            var expired = ApiToken.DB_COLLECTION.FindAllWhere(t => t.Expired).ToList();
+            foreach (var token in expired)
+                ApiToken.DB_COLLECTION.Delete(token.Hash);
+            Log.Information("Deleted {Count} expired tokens", expired.Count);
+            Mocha.NOCTURNE_DATABASE.Compact();
+        });
+    }
+
+    public override void Dispose()
+    {
+        countdownCts?.Cancel();
+        countdownCts?.Dispose();
+        base.Dispose();
+    }
+}
+
+<SettingsComponent Title="Mobile Linking">
+
+    <div class="padding row wrap" style="gap: 1.5rem; align-items: flex-start;">
+
+        <div class="relative round surface white" style="width: fit-content; padding: 0.5rem;">
+            <div class="@(isExpired ? "blur" : "")">
+                @((MarkupString)MochaUtils.GenerateSvgQrCode(rawApiToken))
+            </div>
+
+            @if (isExpired)
+            {
+                <div class="absolute center middle">
+                    <button class="circle extra" @onclick="refresh">
+                        <i>refresh</i>
+                    </button>
+                </div>
+            }
+        </div>
+
+        <div>
+            <h5>Scan to link a device</h5>
+            <p>Open the app, go to Settings → Link Account, and scan this code.</p>
+
+            @if (!isExpired)
+            {
+                <p>
+                    Expires in <strong>@remaining.ToString(@"m\:ss")</strong>
+                </p>
+            }
+            else
+            {
+                <p class="error-text">This code has expired.</p>
+            }
+
+            <div class="field border small">
+                <input type="text" value="@rawApiToken">
+            </div>
+
+            <nav>
+                <button class="border round" @onclick="refresh">
+                    <i>refresh</i>
+                    <span>Generate new code</span>
+                </button>
+            </nav>
+        </div>
+
+    </div>
+
+</SettingsComponent>

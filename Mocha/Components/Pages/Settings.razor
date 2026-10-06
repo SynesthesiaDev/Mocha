@@ -1,0 +1,44 @@
+@page "/settings"
+@using global::Mocha.Components.Pages.SettingsComponents
+@using global::Mocha.Models
+@rendermode InteractiveServer
+@inherits HasContext
+
+@code {
+    private Session? mobileSession;
+    private User? user;
+    private List<Session> sessions = [];
+
+    protected override void OnContextChanged()
+    {
+        if (Context.User == null) return;
+
+        user = Context.User!;
+        mobileSession = Context.User!.Settings.MobileLinkSession;
+        sessions = Context.User.Settings.Sessions;
+
+        StateHasChanged();
+    }
+
+}
+
+@if (Context.Loaded)
+{
+    <SettingsSection Title="API Access">
+
+        @if (mobileSession == null)
+        {
+            <MobileLinkComponent/>
+        }
+        else
+        {
+            <MobileAlreadyLinkedComponent/>
+        }
+
+        @if (user != null)
+        {
+            <SessionListComponent Sessions="sessions"/>
+        }
+    </SettingsSection>
+}
+

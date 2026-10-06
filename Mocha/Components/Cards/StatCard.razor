@@ -1,0 +1,27 @@
+@using System.Globalization
+@using global::Mocha.Models
+@using global::Mocha.Util
+@code
+{
+    [Parameter]
+    public required HealthStatisticsReport? Health { get; set; }
+}
+
+<article class="large-padding surface-container-high" style="text-align: left">
+    <h6 class="bold">GOALS &amp; PROGRESS</h6>
+
+    @if (Health == null)
+    {
+        <StatCardRow Icon="@Icons.HEALTH_HEART_PTS_BAD" Label="Cardio Points" Value="0 / 20" Percent="0" Accent="#F2A9A0" />
+        <StatCardRow Icon="@Icons.HEALTH_STEPS" Label="Steps" Value="0 / 4,000" Percent="0" Accent="#9BDB6B" />
+        <StatCardRow Icon="@Icons.SLEEP" Label="Sleep" Value="0 Hours" Percent="0" Accent="#C9A9F5" />
+    }
+    else
+    {
+        <StatCardRow Icon="@Icons.GetHeartPtsIcon(Health.CardioPoints)" Label="Cardio Points" Value="@($"{Health.CardioPoints} / 20")" Percent="@MochaUtils.Percentage(Health.CardioPoints, 20)" Accent="#F2A9A0" />
+        <StatCardRow Icon="@Icons.HEALTH_STEPS" Label="Steps" Value="@($"{Health.Steps.ToString("#,##0", CultureInfo.InvariantCulture)} / 4,000")" Percent="@MochaUtils.Percentage(Health.Steps, 4000)" Accent="#9BDB6B" />
+        <StatCardRow Icon="@Icons.SLEEP" Label="Sleep" Value="@($"{Health.SleepDuration} Hours")" Percent="@MochaUtils.Percentage(Health.SleepDuration, 8)" Accent="#C9A9F5" />
+    }
+
+
+</article>

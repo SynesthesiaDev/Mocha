@@ -1,0 +1,20 @@
+@using global::Mocha.Models
+
+@code {
+
+    [Parameter]
+    public required Session Session { get; set; }
+
+}
+
+<li>
+    <i>@Icons.DESKTOP_WINDOW</i>
+    <div class="max">
+        <h6 class="small"><b>@Session.DeviceName</b></h6>
+        <div>Last active: @Session.LastActivity.ToString("F")</div>
+    </div>
+    <button class="error">
+        <i>@Icons.LOGOUT</i>
+        Invalidate
+    </button>
+</li>

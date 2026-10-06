@@ -1,0 +1,14 @@
+@code {
+
+    [Parameter]
+    public required string Title { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+}
+
+<article class="surface-container-high">
+    <h5>@Title</h5>
+    @ChildContent
+</article>

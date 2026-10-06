@@ -1,0 +1,91 @@
+﻿@using global::Mocha.Extensions
+@using global::Mocha.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@inherits LayoutComponentBase
+@inject AuthenticationStateProvider authStateProvider
+@rendermode InteractiveServer
+@inject MochaContext context
+@inject NavigationManager navigationManager
+
+@code {
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "SelectedDay")]
+    public int? SelectedDay { get; set; }
+
+    private User? user;
+    private Day? day;
+    private DateOnly currentSelectedDate = DateTimeOffset.UtcNow.ToAppDay();
+
+    private void updateDay()
+    {
+        if (user == null) return;
+
+
+        currentSelectedDate = SelectedDay.HasValue
+            ? DateOnly.FromDayNumber(SelectedDay.Value)
+            : DateTimeOffset.UtcNow.ToAppDay();
+
+
+        day = Day.GetOrCreate(currentSelectedDate, user);
+        context.SetDay(day);
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var authState = await authStateProvider.GetAuthenticationStateAsync();
+        Guid? guid = authState.GetGuid();
+        if (guid == null) return;
+
+        user = User.DB_COLLECTION.FindOrNull(guid.Value);
+        context.SetUser(user);
+
+        if (user == null)
+        {
+            navigationManager.NavigateTo("/logout?returnUrl=/login", forceLoad: true);
+            return;
+        }
+
+        updateDay();
+    }
+
+    protected override void OnParametersSet() => updateDay();
+
+}
+
+<div class="layout">
+    <Toolbar User="user"/>
+    <NavMenu Day="day" User="user"/>
+
+    <main class="responsive">
+        <div class="padding">
+            <AuthorizeView>
+                <Authorized>
+                    @if (user != null && day != null)
+                    {
+                        @Body
+                    }
+                    else
+                    {
+                        <!-- loader -->
+                        <progress value="100" max="100" class="indeterminate"></progress>
+                    }
+
+                </Authorized>
+                <NotAuthorized>
+                    <NotLoggedIn/>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+

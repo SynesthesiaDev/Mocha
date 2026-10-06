@@ -1,0 +1,141 @@
+@using global::Mocha.Models
+@using Synesthesia.Utils.Extensions
+
+@code {
+
+    [Parameter]
+    public required MochaTask Task { get; set; }
+
+    [Parameter]
+    public required MochaContext Context { get; set; }
+
+    [Parameter]
+    public required bool IsTaskDumbView { get; set; }
+
+    private void delete()
+    {
+        MochaTask.DATABASE_COLLECTION.Delete(Task.Id);
+        Context.NotifyChanged();
+    }
+
+    private void edit()
+    {
+        Context.RequestTaskEdit(Task);
+    }
+
+}
+
+<div class="task">
+    <div class="task-left">
+        <p class="title"><b>@Task.Title</b></p>
+        @if (Task.Description != null)
+        {
+            <p class="subtitle">@Task.Description.CutIfTooLong(100)</p>
+        }
+        <div>
+            <button class="chip round primary">
+                <Icon Type="@Icons.JOURNAL"/>
+                Journal / Mocha
+            </button>
+            <button class="chip round">
+                <Icon Type="@Icons.REPEAT"/>
+                Repeats Every Day
+            </button>
+        </div>
+    </div>
+
+
+    <div class="task-right">
+
+        <div>
+            <button class="square extra fab">
+                <Icon Type="@Icons.DOTS"/>
+            </button>
+            <menu class="no-wrap" @onclick="edit">
+                <li>
+                    <i>@Icons.EDIT</i>
+                    <span>Edit</span>
+                </li>
+                <li @onclick="delete">
+                    <i>@Icons.DELETE</i>
+                    <span>Delete</span>
+                </li>
+            </menu>
+        </div>
+
+
+        @if (IsTaskDumbView)
+        {
+            <button class="square extra">
+                <Icon Type="@Icons.CALENDAR"/>
+            </button>
+        }
+        else
+        {
+            <button class="square extra fab">
+                <Icon Type="@Icons.PLAY"/>
+            </button>
+
+            <button class="square extra">
+                <Icon Type="@Icons.CHECK"/>
+            </button>
+        }
+
+    </div>
+</div>
+<br>
+
+
+<style>
+
+    .fab {
+        background: #4F4441;
+        color: #9C8E89
+    }
+
+    .title {
+        font-size: 24px;
+    }
+
+    .subtitle {
+        font-size: 20px;
+        opacity: 75%;
+        margin-block-start: 0 !important;
+    }
+
+    .task {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        line-height: 1rem;
+        gap: 16px;
+        padding: 16px;
+        background: #382E2B;
+    }
+
+    .task-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-shrink: 0;
+    }
+
+    .task-left {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .title {
+        font-size: 24px;
+        line-height: 1.2;
+        margin: 0;
+    }
+
+    .chip.round {
+        line-height: 1;
+        padding: 4px 12px;
+        margin: 0;
+    }
+</style>

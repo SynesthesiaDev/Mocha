@@ -1,0 +1,43 @@
+﻿@page "/"
+@using global::Mocha.Components.Pages.HomeComponents
+@rendermode InteractiveServer
+@inherits HasContext
+
+@code
+{
+    protected override void OnContextChanged()
+    {
+        StateHasChanged();
+    }
+
+    public static string GetDayWithOrdinal(DateOnly date)
+    {
+        int day = date.Day;
+        string suffix = (day % 100) is 11 or 12 or 13
+            ? "th"
+            : (day % 10) switch
+            {
+                1 => "st",
+                2 => "nd",
+                3 => "rd",
+                _ => "th"
+            };
+
+        return $"{day}{suffix} of {date:MMMM}";
+    }
+}
+
+<PageTitle>Home</PageTitle>
+
+<h1>
+    @if (Context.Loaded)
+    {
+        @Context.Day!.Date.ToString("dddd")<br/>
+        @GetDayWithOrdinal(Context.Day.Date)
+
+        <CurrentlyFocusingComponent Day="Context.Day"/>
+    }
+
+</h1>
+
+

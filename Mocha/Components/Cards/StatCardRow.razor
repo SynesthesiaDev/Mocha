@@ -1,0 +1,20 @@
+<div class="stat-row" style="--primary:@Accent">
+    <div class="stat-icon"><Icon Type="@Icon"/></div>
+    <div class="stat-body">
+        <div class="stat-top">
+            <span>@Label</span>
+            <span class="stat-value">@Value</span>
+        </div>
+        <div class="stat-track">
+            <div class="stat-fill" style="width: @(Percent)%"></div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Icon { get; set; } = "favorite";
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public double Percent { get; set; }
+    [Parameter] public string Accent { get; set; } = "#BEE576";
+}

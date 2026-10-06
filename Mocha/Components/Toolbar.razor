@@ -1,0 +1,42 @@
+@using global::Mocha.Models
+
+@code {
+    [Parameter]
+    public required User? User { get; set; }
+}
+
+<nav class="top custom-navbar @(User == null ? "disabled" : "")">
+    <img src="mocha_logo.png" alt="mocha_logo" class="custom-logo"/>
+
+    <nav class="toolbar surface-container-high">
+
+        <a>
+            <i>@Icons.LIGHT_MODE</i>
+        </a>
+        <a href="/settings">
+            <i>@Icons.SETTINGS</i>
+        </a>
+
+        <img alt="Profile Picture" class="circle" src="@(User?.ProfileImageUrl ?? "default.png") ">
+    </nav>
+</nav>
+
+
+<style>
+    .custom-navbar {
+        grid-column: 1 / -1;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        width: 100%;
+        padding: 0.5rem 1rem;
+        box-sizing: border-box;
+    }
+
+    .custom-logo {
+        height: 48px;
+        width: auto;
+        object-fit: contain;
+        padding-left: 20px;
+    }
+</style>

@@ -1,0 +1,36 @@
+@using System.Globalization
+@using global::Mocha.Extensions
+@using global::Mocha.Models
+
+@code
+{
+    [Parameter]
+    public required HealthStatisticsReport? Health { get; set; }
+
+    [Parameter]
+    public required Day? Day { get; set; }
+}
+
+<article class="large-padding surface-container-high" style="text-align: left">
+    <h6 class="bold">INSIGHTS</h6>
+
+    @if (Health == null || Day == null)
+    {
+        <InsightCardRow Icon="@Icons.HIKING"><b>0 Km</b> walked</InsightCardRow>
+        <InsightCardRow Icon="@Icons.HEALTH_CALORIES"><b>0 Calories</b> burned</InsightCardRow>
+        <InsightCardRow Icon="@Icons.WEATHER"><b>Sunny</b></InsightCardRow>
+        <InsightCardRow Icon="@Icons.SUNRISE">Awake for <b>0h</b> of sunlight</InsightCardRow>
+        <InsightCardRow Icon="@Icons.HEART_RATE"><b>0 bpm</b> average</InsightCardRow>
+        <InsightCardRow Icon="@Icons.SPO2"><b>0%</b> SpO2 average</InsightCardRow>
+    }
+    else
+    {
+        <InsightCardRow Icon="@Icons.HIKING"><b>@Health.DistanceWalkedKm Km</b> walked</InsightCardRow>
+        <InsightCardRow Icon="@Icons.HEALTH_CALORIES"><b>@Health.CaloriesBurned.ToString("#,##0", CultureInfo.InvariantCulture) Calories</b> burned</InsightCardRow>
+        <InsightCardRow Icon="@Icons.WEATHER"><b>Partly Cloudy</b></InsightCardRow>
+        <InsightCardRow Icon="@Icons.SUNRISE">Awake for <b>@Day.AwakeSunlightHours.Round(1)h</b> of sunlight</InsightCardRow>
+        <InsightCardRow Icon="@Icons.HEART_RATE"><b>@Health.BpmAverage bpm</b> average</InsightCardRow>
+        <InsightCardRow Icon="@Icons.SPO2"><b>@Health.SpO2Average%</b> SpO2 average</InsightCardRow>
+    }
+
+</article>

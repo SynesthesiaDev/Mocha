@@ -1,0 +1,165 @@
+@using global::Mocha.Models
+
+@code {
+
+    [Parameter]
+    public required MochaTask? TaskToEdit { get; set; }
+
+    [Parameter]
+    public required MochaContext Context { get; set; }
+
+    [Parameter]
+    public Action<MochaTask?>? Callback { get; set; }
+
+    private readonly bool active = true;
+
+    private string taskTitle = string.Empty;
+    private string taskDescription = string.Empty;
+
+    private void createTask()
+    {
+        var guid = Guid.NewGuid();
+        var task = new MochaTask(guid, Context.User!.Guid, taskTitle, taskDescription, null, null, null, false, null, DateTimeOffset.Now, null);
+
+        MochaTask.DATABASE_COLLECTION.Insert(guid, task);
+
+        Context.NotifyChanged();
+        StateHasChanged();
+        Callback?.Invoke(task);
+    }
+
+    private void editTask()
+    {
+        if (TaskToEdit == null) return;
+
+        var task = new MochaTask(TaskToEdit.Id, Context.User!.Guid, taskTitle, taskDescription, null, null, null, false, null, TaskToEdit.CreatedAt, null);
+        MochaTask.DATABASE_COLLECTION.Insert(TaskToEdit.Id, task);
+
+        Context.NotifyChanged();
+        StateHasChanged();
+        Callback?.Invoke(task);
+
+    }
+
+    protected override void OnInitialized()
+    {
+        if (TaskToEdit != null)
+        {
+            taskTitle = TaskToEdit.Title;
+            taskDescription = TaskToEdit.Description ?? string.Empty;
+        }
+    }
+
+}
+
+
+<dialog id="task-modal" class="modal surface-container-high @(active ? "active" : "")">
+    <div class="modal-content">
+
+        <div class="field label fill border">
+            <input type="text" class="modal-input" @bind="taskTitle">
+            <label class="on-surface-opacity">Title</label>
+        </div>
+
+        <div class="field label fill border">
+            <textarea class="modal-input" rows="4" @bind="taskDescription"></textarea>
+            <label class="on-surface-opacity">Description</label>
+        </div>
+
+        <br>
+
+        <div class="modal-footer">
+            <div class="meta-buttons">
+                <button class="border on-surface round">
+                    <Icon Type="expand_more"/>
+                    Project
+                </button>
+                <button class="border on-surface round">
+                    <Icon Type="bolt"/>
+                    Energy
+                </button>
+                <button class="border on-surface round">
+                    <Icon Type="calendar_clock"/>
+                    Due Date
+                </button>
+                <button class="meta-btn border round on-surface">
+                    <Icon Type="event_repeat"/>
+                    Repeat
+                </button>
+            </div>
+
+            @if (TaskToEdit != null)
+            {
+                <button class="round" @onclick="editTask">
+                    <Icon Type="@Icons.EDIT"/>
+                    Edit Task
+                </button>
+            }
+            else
+            {
+                <button class="round" @onclick="createTask">
+                    <Icon Type="@Icons.ADD"/>
+                    Create Task
+                </button>
+            }
+        </div>
+    </div>
+</dialog>
+
+
+<style>
+
+    dialog.modal {
+        border-radius: 20px;
+        width: min(750px, 90vw);
+    }
+
+    .modal-input {
+        background: #4F4441 !important;
+        border-color: color-mix(in srgb, var(--on-surface) 25%, transparent) !important;
+    }
+
+
+    .modal-input::placeholder, .modal-textarea::placeholder {
+        color: #8A8080;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .meta-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .meta-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        font-size: 14px;
+        border-color: #5A5050;
+        color: #D0D0D0;
+    }
+
+    .meta-btn:hover {
+        background-color: #3B3333;
+    }
+
+    .create-btn {
+        background-color: #B6E87E;
+        color: #1C1C1C;
+        font-weight: 600;
+        padding: 10px 28px;
+    }
+
+    .create-btn:hover {
+        background-color: #A3D666;
+    }
+</style>

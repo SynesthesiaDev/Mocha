@@ -1,0 +1,17 @@
+@using global::Mocha.Models
+
+@code {
+
+    [Parameter]
+    public required List<Session> Sessions { get; set; }
+
+}
+
+<SettingsComponent Title="Active Tokens">
+    <ul class="list border">
+        @foreach (var session in Sessions)
+        {
+            <SessionComponentLine Session="session"/>
+        }
+    </ul>
+</SettingsComponent>

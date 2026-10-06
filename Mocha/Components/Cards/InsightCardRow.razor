@@ -1,0 +1,16 @@
+<div class="insight-row">
+    <div class="insight-icon"><Icon Type="@Icon"/></div>
+        <span>@ChildContent</span>
+</div>
+
+@code {
+
+    [Parameter]
+    public string Icon { get; set; } = "favorite";
+
+    [Parameter]
+    public string Label { get; set; } = "";
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

@@ -1,0 +1,61 @@
+@using global::Mocha.Models
+@rendermode InteractiveServer
+@inject NavigationManager navigationManager
+@inherits HasContext
+
+@code {
+
+    private Session? mobileSession;
+
+    protected override void OnContextChanged()
+    {
+        if (Context.User != null)
+        {
+            mobileSession = Context.User!.Settings.MobileLinkSession;
+        }
+
+        StateHasChanged();
+
+    }
+    private void unlink()
+    {
+        if (mobileSession == null) return;
+        var token = ApiToken.DB_COLLECTION.FindOrNull(mobileSession.SessionTokenHash);
+
+        var user = Context.User!;
+        var newUser = user with { Settings = user.Settings with { MobileLinkSession = null, MobileAppLinked = false } };
+        newUser.Settings.Sessions.Remove(mobileSession);
+        User.DB_COLLECTION.Insert(user.Guid, newUser);
+
+        token?.Invalidate();
+        Context.NotifyChanged();
+        StateHasChanged();
+
+        navigationManager.Refresh(true);
+    }
+
+}
+
+<SettingsComponent Title="Mobile Linking">
+
+    @if (mobileSession != null)
+    {
+        <div class="padding row wrap" style="gap: 1.5rem; align-items: flex-start;">
+
+            <div>
+                <h5>Your <b>@mobileSession.DeviceName</b> is linked!</h5>
+
+                <p>Last sync: @mobileSession.LastActivity.ToString("F")</p>
+
+                <nav>
+                    <button class="border round error" @onclick="unlink">
+                        <i>@Icons.LOGOUT</i>
+                        <span>Unlink Device</span>
+                    </button>
+                </nav>
+            </div>
+
+        </div>
+    }
+
+</SettingsComponent>

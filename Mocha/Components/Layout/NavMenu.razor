@@ -1,0 +1,51 @@
+﻿@using global::Mocha.Components.Cards
+@using global::Mocha.Models
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+
+@code
+{
+    [Parameter]
+    public required Day? Day { get; set; }
+
+    [Parameter]
+    public required User? User { get; set; }
+
+    private void changeDay(int days)
+    {
+        if(Day == null) return;
+        if (days == 0)
+        {
+            navigationManager.NavigateTo("/");
+            return;
+        }
+
+        var targetDate = Day.Date.AddDays(days);
+        navigationManager.NavigateTo($"/?SelectedDay={targetDate.DayNumber}");
+    }
+}
+
+<nav class="left max l @(Day == null ? "disabled" : "")">
+    <div class="sidebar-stack">
+        <nav class="group connected">
+            <button class="left-round surface-container-high" style="flex:1" @onclick="() => changeDay(-1)">
+                <Icon Type="@Icons.ARROW_BACK"/>
+            </button>
+            <button class="surface-container-high" style="flex:4" @onclick="() => changeDay(0)">
+                <Icon Type="@Icons.CALENDAR"/>
+                <span>Today</span>
+            </button>
+            <button class="right-round surface-container-high" style="flex:1" @onclick="() => changeDay(1)">
+                <Icon Type="@Icons.ARROW_FORWARD"/>
+            </button>
+        </nav>
+
+        <StatCard Health="Day?.LatestHealthStatistics"/>
+        <InsightsCard Health="Day?.LatestHealthStatistics" Day="Day"/>
+
+        <a href="/tasks" class="border" style="margin-top: 1rem">
+            <i>@Icons.TASKS</i>
+            task dump
+        </a>
+    </div>
+</nav>
