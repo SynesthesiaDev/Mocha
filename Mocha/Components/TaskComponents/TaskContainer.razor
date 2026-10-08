@@ -40,13 +40,20 @@
         Context.RequestTaskEdit(null);
         modalOpen = false;
     }
+
+    private MochaTask append(MochaTask task)
+    {
+        if (IsTaskDumpView) return task;
+        return task with { ScheduledDate = Context.Day!.Date };
+    }
+
 }
 
 <div class="overlay @(modalOpen ? "active" : "")" @onclick="close"></div>
 
 <div class="row">
     <div class="max">
-        <h1>Tasks</h1>
+        <h5>Active Tasks</h5>
     </div>
     <button @onclick="open">
         <Icon Type="@Icons.ADD"/>Create
@@ -56,10 +63,10 @@
 
 @foreach (var task in tasks)
 {
-    <TaskDisplay IsTaskDumpView="@IsTaskDumpView" Task="task" Context="Context" IsScheduledForToday="task.ScheduledDate == Context.Day!.Date"/>
+    <TaskDisplay @key="task.Id" IsTaskDumpView="@IsTaskDumpView" Task="task" Context="Context" IsScheduledForToday="task.ScheduledDate == Context.Day!.Date"/>
 }
 
 @if (modalOpen)
 {
-    <TaskEditModal Context="Context" TaskToEdit="taskToEdit" Callback="_ => close()"/>
+    <TaskEditModal Context="Context" TaskToEdit="taskToEdit" Callback="_ => close()"  Append="append"/>
 }

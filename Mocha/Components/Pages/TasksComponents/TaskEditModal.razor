@@ -12,6 +12,9 @@
     [Parameter]
     public Action<MochaTask?>? Callback { get; set; }
 
+    [Parameter]
+    public Func<MochaTask, MochaTask> Append { get; set; } = t => t;
+
     [Inject]
     private IJSRuntime java8RuntimeEnvironment { get; set; } = null!;
 
@@ -30,7 +33,7 @@
     {
         var taskToEdit = TaskToEdit ?? MochaTask.Empty(Context.User!);
 
-        var task = taskToEdit with
+        var editedTask = taskToEdit with
         {
             Title = taskTitle,
             Description = taskDescription,
@@ -38,11 +41,13 @@
             EnergyLevel = energyLevel
         };
 
-        MochaTask.DATABASE_COLLECTION.Insert(task.Id, task);
+
+        var finalTask = Append.Invoke(editedTask);
+        MochaTask.DATABASE_COLLECTION.Insert(finalTask.Id, finalTask);
 
         Context.NotifyChanged();
         StateHasChanged();
-        Callback?.Invoke(task);
+        Callback?.Invoke(finalTask);
     }
 
     protected override void OnInitialized()
