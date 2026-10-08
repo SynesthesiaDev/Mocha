@@ -14,8 +14,8 @@
         if (Context.User == null) return;
 
         user = Context.User!;
-        mobileSession = Context.User!.Settings.MobileLinkSession;
-        sessions = Context.User.Settings.Sessions;
+        mobileSession = Context.User!.MobileLinkSession;
+        sessions = Context.User.Sessions;
 
         StateHasChanged();
     }

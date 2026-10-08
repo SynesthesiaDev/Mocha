@@ -144,6 +144,7 @@ h6 {
     border-color: color-mix(in srgb, var(--on-surface) 75%, transparent) !important;
 }
 
+
 .stat-body {
     flex: 1;
     min-width: 0;

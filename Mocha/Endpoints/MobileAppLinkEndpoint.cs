@@ -47,15 +47,15 @@ public static class MobileAppLinkEndpoint
 
             var ip = context.Connection.RemoteIpAddress?.MapToIPv4().ToString() ?? string.Empty;
 
-            var existing = user.Settings.Sessions.FirstOrDefault(s => s.DeviceId == decoded.DeviceId);
+            var existing = user.Sessions.FirstOrDefault(s => s.DeviceId == decoded.DeviceId);
             if (existing != null)
             {
-                user.Settings.Sessions.Remove(existing);
+                user.Sessions.Remove(existing);
             }
 
             var session = new Session(sessionId, decoded.DeviceId, decoded.DeviceName, decoded.DeviceType, decoded.OsVersion, decoded.AppVersion, ip, DateTimeOffset.Now, hash, user.Guid);
-            user.Settings.Sessions.Add(session);
-            user = user with { Settings = user.Settings with { MobileAppLinked = true, MobileLinkSession = session } };
+            user.Sessions.Add(session);
+            user = user with {MobileLinkSession = session };
 
             ApiToken.DB_COLLECTION.Insert(hash, bearer);
             User.DB_COLLECTION.Insert(user.Guid, user);

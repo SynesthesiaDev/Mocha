@@ -1,5 +1,6 @@
 @using global::Mocha.Components.Pages.TasksComponents
 @using global::Mocha.Models
+@using Synesthesia.Utils.Extensions
 @rendermode InteractiveServer
 @inherits HasContext
 
@@ -9,18 +10,31 @@
     public required bool IsTaskDumpView { get; set; }
 
     [Parameter]
+    public bool ShowCompletedTasksSeparately { get; set; } = true;
+
+    [Parameter]
     public Func<MochaTask, bool> Filter { get; set; } = _ => true;
 
     private bool modalOpen;
 
-    private List<MochaTask> tasks = [];
+    private List<MochaTask> todoTasks = [];
+    private List<MochaTask> completedTasks = [];
     private MochaTask? taskToEdit;
 
     protected override void OnContextChanged()
     {
         if (Context.Loaded)
         {
-            tasks = [.. MochaTask.DATABASE_COLLECTION.FindAllWhere(t => t.OwningUserId == Context.User!.Guid && Filter.Invoke(t)).TakeLast(20)];
+            var tasks = MochaTask.DATABASE_COLLECTION.FindAllWhere(t => t.OwningUserId == Context.User!.Guid && Filter.Invoke(t)).TakeLast(20).ToList();
+            if (ShowCompletedTasksSeparately)
+            {
+                todoTasks = tasks.Filter(t => t.Status != MochaTaskStatus.Done);
+                completedTasks = tasks.Filter(t => t.Status == MochaTaskStatus.Done);
+            }
+            else
+            {
+                todoTasks = tasks;
+            }
 
             taskToEdit = Context.RequestedTaskEdit;
             if (Context.RequestedTaskEdit != null)
@@ -62,12 +76,30 @@
 </div>
 <br>
 
-@foreach (var task in tasks)
+@foreach (var task in todoTasks)
 {
-    <TaskDisplay @key="task.Id" IsTaskDumpView="@IsTaskDumpView" Task="task" Context="Context" IsScheduledForToday="task.ScheduledDate == Context.Day!.Date"/>
+    <TaskDisplay @key="task.Id" IsTaskDumpView="@IsTaskDumpView" Task="task" Context="Context"/>
 }
 
 @if (modalOpen)
 {
     <TaskEditModal Context="Context" TaskToEdit="taskToEdit" Callback="_ => close()"  Append="append"/>
+}
+
+<Gap Size="24px"/>
+
+
+@if (ShowCompletedTasksSeparately)
+{
+    <div class="row">
+        <div class="max">
+            <h5>Completed Tasks</h5>
+        </div>
+    </div>
+    <br>
+
+    @foreach (var task in completedTasks)
+    {
+        <TaskDisplay @key="task.Id" IsTaskDumpView="@IsTaskDumpView" Task="task" Context="Context"/>
+    }
 }

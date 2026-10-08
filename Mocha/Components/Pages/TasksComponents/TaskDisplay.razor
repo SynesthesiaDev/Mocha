@@ -13,8 +13,8 @@
     [Parameter]
     public required bool IsTaskDumpView { get; set; }
 
-    [Parameter]
-    public required bool IsScheduledForToday { get; set; }
+    public bool IsCompleted => Task.Status == MochaTaskStatus.Done;
+    public bool IsScheduledForToday => Task.ScheduledDate == Context.Day!.Date;
 
     [Inject]
     private IJSRuntime java8RuntimeEnvironment { get; set; } = null!;
@@ -28,6 +28,13 @@
     private void edit()
     {
         Context.RequestTaskEdit(Task);
+    }
+
+    private void changeStatus(MochaTaskStatus status)
+    {
+        var task = Task with { Status = status };
+        MochaTask.DATABASE_COLLECTION.Insert(task.Id, task);
+        Context.NotifyChanged();
     }
 
     private void changeScheduleDate(DateOnly? date)
@@ -60,7 +67,7 @@
 
 }
 
-<div class="task @(IsScheduledForToday && IsTaskDumpView ? "today" : "")">
+<div class="task @(IsScheduledForToday && IsTaskDumpView ? "today" : "") @(Task.Status == MochaTaskStatus.Done ? "completed" : "")">
     <div class="task-left">
         <p class="title"><b>@Task.Title</b></p>
         @if (Task.Description != null)
@@ -110,8 +117,9 @@
             <button class="square extra fab">
                 <Icon Type="@Icons.DOTS"/>
             </button>
-            <menu class="no-wrap" @onclick="edit">
-                <li>
+
+            <menu class="no-wrap">
+                <li @onclick="edit">
                     <i>@Icons.EDIT</i>
                     <span>Edit</span>
                 </li>
@@ -162,9 +170,31 @@
                 <Icon Type="@Icons.PLAY"/>
             </button>
 
-            <button class="square extra">
-                <Icon Type="@Icons.CHECK"/>
-            </button>
+            <div>
+                @if (!IsCompleted)
+                {
+                    <button class="square extra" @onclick="() => changeStatus(MochaTaskStatus.Done)">
+                        <Icon Type="@Icons.CHECK"/>
+                    </button>
+                }
+                else
+                {
+                    <button class="square extra" @onclick="() => changeStatus(MochaTaskStatus.Todo)">
+                        <Icon Type="@Icons.UNDO"/>
+                    </button>
+                }
+
+                @* <menu class="no-wrap"> *@
+                @*     @foreach (var status in EnumExtensions.GetEntries<MochaTaskStatus>()) *@
+                @*     { *@
+                @*         <li> *@
+                @*             $1$ <i>@Icons.EDIT</i> #1# *@
+                @*             <span>@status.GetDisplayNameAttribute()</span> *@
+                @*         </li> *@
+                @*     } *@
+                @* </menu> *@
+
+            </div>
         }
 
     </div>
@@ -173,6 +203,10 @@
 
 
 <style>
+
+    .completed {
+        opacity: 50%;
+    }
 
     .today {
         border-color: var(--primary);

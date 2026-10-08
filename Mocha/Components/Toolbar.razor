@@ -1,23 +1,30 @@
-@using global::Mocha.Models
+@inherits HasContext
 
 @code {
-    [Parameter]
-    public required User? User { get; set; }
+
+    protected override void OnContextChanged()
+    {
+        if (Context.Loaded)
+        {
+
+        }
+    }
+
 }
 
-<nav class="top custom-navbar @(User == null ? "disabled" : "")">
+<nav class="top custom-navbar @(Context.User == null ? "disabled" : "")">
     <img src="mocha_logo.png" alt="mocha_logo" class="custom-logo"/>
 
     <nav class="toolbar surface-container-high">
 
         <a>
-            <i>@Icons.LIGHT_MODE</i>
+            <i>@Icons.VISIBILITY</i>
         </a>
         <a href="/settings">
             <i>@Icons.SETTINGS</i>
         </a>
 
-        <img alt="Profile Picture" class="circle" src="@(User?.ProfileImageUrl ?? "default.png") ">
+        <img alt="Profile Picture" class="circle" src="@(Context.User?.ProfileImageUrl ?? "default.png") ">
     </nav>
 </nav>
 

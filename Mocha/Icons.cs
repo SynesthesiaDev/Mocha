@@ -51,6 +51,9 @@ public static class Icons
     public const string REPEAT = "repeat";
     public const string ENERGY = "bolt";
     public const string REMOVE = "remove";
+    public const string UNDO = "undo";
+    public const string VISIBILITY = "visibility";
+    public const string VISIBILITY_OFF = "visibility_off";
 
 
     public static string GetHeartPtsIcon(int heartPts)

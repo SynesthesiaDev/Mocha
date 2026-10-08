@@ -66,8 +66,8 @@
                 if (context.User is { } user)
                 {
                     var fresh = User.DB_COLLECTION.Find(user.Guid);
-                    if (fresh.Settings.MobileLinkSession is not null &&
-                        user.Settings.MobileLinkSession is null)
+                    if (fresh.MobileLinkSession is not null &&
+                        user.MobileLinkSession is null)
                     {
                         context.SetUser(fresh);
                         return;

@@ -11,7 +11,7 @@
     {
         if (Context.User != null)
         {
-            mobileSession = Context.User!.Settings.MobileLinkSession;
+            mobileSession = Context.User!.MobileLinkSession;
         }
 
         StateHasChanged();
@@ -23,8 +23,8 @@
         var token = ApiToken.DB_COLLECTION.FindOrNull(mobileSession.SessionTokenHash);
 
         var user = Context.User!;
-        var newUser = user with { Settings = user.Settings with { MobileLinkSession = null, MobileAppLinked = false } };
-        newUser.Settings.Sessions.Remove(mobileSession);
+        var newUser = user with {  MobileLinkSession = null };
+        newUser.Sessions.Remove(mobileSession);
         User.DB_COLLECTION.Insert(user.Guid, newUser);
 
         token?.Invalidate();

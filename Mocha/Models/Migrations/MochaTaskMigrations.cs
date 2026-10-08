@@ -9,7 +9,7 @@ using Mocha.Util;
 
 namespace Mocha.Models.Migrations;
 
-public partial record MochaTaskMigrations
+public static class MochaTaskMigrations
 {
     public static IByteBuffer MigrateFromV0(IByteBuffer buffer)
     {

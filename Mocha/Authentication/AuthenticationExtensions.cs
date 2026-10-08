@@ -53,7 +53,7 @@ public static class AuthenticationExtensions
         if (user == null)
         {
             var guid = Guid.NewGuid();
-            user = new User(guid, (long)intermediary.Id, intermediary.Username, intermediary.DisplayName, intermediary.ProfileImageUrl, false, DateTimeOffset.Now, Settings.Default);
+            user = new User(guid, (long)intermediary.Id, intermediary.Username, intermediary.DisplayName, intermediary.ProfileImageUrl, false, DateTimeOffset.Now, null, [], false);
         }
 
         User.DB_COLLECTION.Insert(user.Guid, user with
