@@ -20,7 +20,7 @@
     {
         if (Context.Loaded)
         {
-            tasks = MochaTask.DATABASE_COLLECTION.FindAllWhere(t => t.OwningUserId == Context.User!.Guid && Filter.Invoke(t)).TakeLast(20).ToList();
+            tasks = [.. MochaTask.DATABASE_COLLECTION.FindAllWhere(t => t.OwningUserId == Context.User!.Guid && Filter.Invoke(t)).TakeLast(20)];
 
             taskToEdit = Context.RequestedTaskEdit;
             if (Context.RequestedTaskEdit != null)
@@ -43,6 +43,7 @@
 
     private MochaTask append(MochaTask task)
     {
+
         if (IsTaskDumpView) return task;
         return task with { ScheduledDate = Context.Day!.Date };
     }

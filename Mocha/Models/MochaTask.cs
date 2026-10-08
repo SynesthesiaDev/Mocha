@@ -4,8 +4,10 @@
 using Codon.Binary;
 using Codon.Codec;
 using Codon.Optionals;
+using Mocha.Models.Migrations;
 using Mocha.Util;
 using Nocturne.Database.API;
+using Nocturne.Database.Migrations;
 
 namespace Mocha.Models;
 
@@ -17,10 +19,12 @@ public record MochaTask(
     Guid? ProjectId,
     DateOnly? ScheduledDate,
     DateOnly? DueDate,
-    bool Finished,
+    MochaTaskStatus Status,
     EnergyLevel? EnergyLevel,
     DateTimeOffset CreatedAt,
-    Guid? RepeatTemplateId
+    Guid? RepeatTemplateId,
+    bool IsPrivacySensitive,
+    DateTimeOffset? CompletedAt
 )
 {
     public static MochaTask Empty(User user) => new MochaTask
@@ -32,9 +36,11 @@ public record MochaTask(
         null,
         null,
         null,
-        false,
+        MochaTaskStatus.Todo,
         Models.EnergyLevel.Medium,
         DateTimeOffset.Now,
+        null,
+        false,
         null
     );
 
@@ -49,17 +55,22 @@ public record MochaTask(
         .Field(BinaryCodecs.GUID.Optional(), c => c.ProjectId.ToOptional())
         .Field(ExtraCodecs.DATE_ONLY_BINARY.Optional(), c => Optional.Of<DateOnly>(c.ScheduledDate))
         .Field(ExtraCodecs.DATE_ONLY_BINARY.Optional(), c => Optional.Of<DateOnly>(c.DueDate))
-        .Field(BinaryCodecs.BOOLEAN, c => c.Finished)
+        .Field(BinaryCodecs.Enum<MochaTaskStatus>(), c => c.Status)
         .Field(BinaryCodecs.Enum<EnergyLevel>().Optional(), c => Optional.Of<EnergyLevel>(c.EnergyLevel))
         .Field(ExtraCodecs.DATE_TIME_OFFSET_BINARY, c => c.CreatedAt)
         .Field(BinaryCodecs.GUID.Optional(), c => Optional.Of<Guid>(c.RepeatTemplateId))
-        .Build((id, owninguserid, title, description, projectid, scheduleddate, due, finished, energy, createdat, repeat) => new MochaTask(id, owninguserid, title, description.ToNullableClass(), projectid.ToNullableStruct(), scheduleddate.ToNullableStruct(), due.ToNullableStruct(), finished, energy.ToNullableStruct(), createdat, repeat.ToNullableStruct()));
+        .Field(BinaryCodecs.BOOLEAN, c => c.IsPrivacySensitive)
+        .Field(ExtraCodecs.DATE_TIME_OFFSET_BINARY.Optional(), c => Optional.Of<DateTimeOffset>(c.CompletedAt))
+        .Build((id, owninguserid, title, description, projectid, scheduleddate, due, status, energy, createdat, repeat, privacySensitive, completedAt) => new MochaTask(id, owninguserid, title, description.ToNullableClass(), projectid.ToNullableStruct(), scheduleddate.ToNullableStruct(), due.ToNullableStruct(), status, energy.ToNullableStruct(), createdat, repeat.ToNullableStruct(), privacySensitive, completedAt.ToNullableStruct()));
 
+    // Added IsPrivacySensitive
     public static readonly NocturneCollection<Guid, MochaTask> DATABASE_COLLECTION = Mocha.NOCTURNE_DATABASE.For(
         collectionKey: "tasks",
-        schemaVersion: 0,
+        schemaVersion: 1,
         keySerializer: KeySerializers.GUID,
         NocturneSerializer.FromCodec(BINARY_CODEC),
-        migrationStrategy: null
+        migrationStrategy: IMigrationStrategy.Migrations()
+            .Add(0, MochaTaskMigrations.MigrateFromV0)
+            .Build()
     );
 }
