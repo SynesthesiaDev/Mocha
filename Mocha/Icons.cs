@@ -33,6 +33,8 @@ public static class Icons
     public const string HEALTH_CALORIES = "mode_heat";
     public const string BACK = "arrow_back";
     public const string CALENDAR = "calendar_today";
+    public const string CALENDAR_CHECK = "calendar_check";
+    public const string CALENDAR_DUE = "priority_high";
     public const string ARROW_BACK = "arrow_back";
     public const string ARROW_FORWARD = "arrow_forward";
     public const string HEART_RATE = "ecg_heart";
@@ -47,6 +49,8 @@ public static class Icons
     public const string PLAY = "play_arrow";
     public const string DOTS = "more_horiz";
     public const string REPEAT = "repeat";
+    public const string ENERGY = "bolt";
+    public const string REMOVE = "remove";
 
 
     public static string GetHeartPtsIcon(int heartPts)

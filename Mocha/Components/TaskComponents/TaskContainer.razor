@@ -1,0 +1,65 @@
+@using global::Mocha.Components.Pages.TasksComponents
+@using global::Mocha.Models
+@rendermode InteractiveServer
+@inherits HasContext
+
+@code {
+
+    [Parameter]
+    public required bool IsTaskDumpView { get; set; }
+
+    [Parameter]
+    public Func<MochaTask, bool> Filter { get; set; } = _ => true;
+
+    private bool modalOpen;
+
+    private List<MochaTask> tasks = [];
+    private MochaTask? taskToEdit;
+
+    protected override void OnContextChanged()
+    {
+        if (Context.Loaded)
+        {
+            tasks = MochaTask.DATABASE_COLLECTION.FindAllWhere(t => t.OwningUserId == Context.User!.Guid && Filter.Invoke(t)).TakeLast(20).ToList();
+
+            taskToEdit = Context.RequestedTaskEdit;
+            if (Context.RequestedTaskEdit != null)
+            {
+                modalOpen = true;
+            }
+        }
+    }
+
+    private void open()
+    {
+        modalOpen = true;
+    }
+
+    private void close()
+    {
+        Context.RequestTaskEdit(null);
+        modalOpen = false;
+    }
+}
+
+<div class="overlay @(modalOpen ? "active" : "")" @onclick="close"></div>
+
+<div class="row">
+    <div class="max">
+        <h1>Tasks</h1>
+    </div>
+    <button @onclick="open">
+        <Icon Type="@Icons.ADD"/>Create
+    </button>
+</div>
+<br>
+
+@foreach (var task in tasks)
+{
+    <TaskDisplay IsTaskDumpView="@IsTaskDumpView" Task="task" Context="Context" IsScheduledForToday="task.ScheduledDate == Context.Day!.Date"/>
+}
+
+@if (modalOpen)
+{
+    <TaskEditModal Context="Context" TaskToEdit="taskToEdit" Callback="_ => close()"/>
+}

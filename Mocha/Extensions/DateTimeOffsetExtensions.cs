@@ -10,4 +10,5 @@ public static class DateTimeOffsetExtensions
         var local = TimeZoneInfo.ConvertTime(instant, TimeZoneInfo.FindSystemTimeZoneById("Europe/Prague"));
         return DateOnly.FromDateTime(local.DateTime);
     }
+
 }

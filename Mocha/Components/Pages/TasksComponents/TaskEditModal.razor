@@ -1,4 +1,5 @@
 @using global::Mocha.Models
+@using Synesthesia.Utils.Extensions
 
 @code {
 
@@ -11,34 +12,37 @@
     [Parameter]
     public Action<MochaTask?>? Callback { get; set; }
 
+    [Inject]
+    private IJSRuntime java8RuntimeEnvironment { get; set; } = null!;
+
     private readonly bool active = true;
 
     private string taskTitle = string.Empty;
     private string taskDescription = string.Empty;
+    private EnergyLevel? energyLevel;
+    private DateOnly? dueDate;
+
+    private ElementReference dateInputRef;
+
+    private void setEnergyLevel(EnergyLevel? level) => energyLevel = level;
 
     private void createTask()
     {
-        var guid = Guid.NewGuid();
-        var task = new MochaTask(guid, Context.User!.Guid, taskTitle, taskDescription, null, null, null, false, null, DateTimeOffset.Now, null);
+        var taskToEdit = TaskToEdit ?? MochaTask.Empty(Context.User!);
 
-        MochaTask.DATABASE_COLLECTION.Insert(guid, task);
+        var task = taskToEdit with
+        {
+            Title = taskTitle,
+            Description = taskDescription,
+            DueDate = dueDate,
+            EnergyLevel = energyLevel
+        };
 
-        Context.NotifyChanged();
-        StateHasChanged();
-        Callback?.Invoke(task);
-    }
-
-    private void editTask()
-    {
-        if (TaskToEdit == null) return;
-
-        var task = new MochaTask(TaskToEdit.Id, Context.User!.Guid, taskTitle, taskDescription, null, null, null, false, null, TaskToEdit.CreatedAt, null);
-        MochaTask.DATABASE_COLLECTION.Insert(TaskToEdit.Id, task);
+        MochaTask.DATABASE_COLLECTION.Insert(task.Id, task);
 
         Context.NotifyChanged();
         StateHasChanged();
         Callback?.Invoke(task);
-
     }
 
     protected override void OnInitialized()
@@ -48,6 +52,14 @@
             taskTitle = TaskToEdit.Title;
             taskDescription = TaskToEdit.Description ?? string.Empty;
         }
+
+        dueDate = TaskToEdit?.DueDate;
+        energyLevel = TaskToEdit?.EnergyLevel;
+    }
+
+    private async Task openDatePicker()
+    {
+        await java8RuntimeEnvironment.InvokeVoidAsync("showDatePicker", dateInputRef);
     }
 
 }
@@ -70,27 +82,47 @@
 
         <div class="modal-footer">
             <div class="meta-buttons">
-                <button class="border on-surface round">
-                    <Icon Type="expand_more"/>
-                    Project
-                </button>
-                <button class="border on-surface round">
-                    <Icon Type="bolt"/>
-                    Energy
-                </button>
-                <button class="border on-surface round">
+                @* <button class="border on-surface round"> *@
+                @*     <Icon Type="expand_more"/> *@
+                @*     Project *@
+                @* </button> *@
+
+                <div>
+                    <button class="border on-surface round">
+                        <Icon Type="@Icons.ENERGY"/>
+                        @(energyLevel?.GetDisplayNameAttribute() ?? "Energy Level")
+                    </button>
+                    <menu>
+                        @foreach (var level in EnumExtensions.GetEntries<EnergyLevel>())
+                        {
+                            <li @onclick="() => setEnergyLevel(level)">@level.GetDisplayNameAttribute()</li>
+                        }
+                        <li>
+                            <hr>
+                            <hr>
+                        </li>
+                        <li @onclick="() => setEnergyLevel(null)">Reset</li>
+                    </menu>
+                </div>
+
+                <button type="button" class="border on-surface round" @onclick="openDatePicker">
                     <Icon Type="calendar_clock"/>
-                    Due Date
+                    @(dueDate?.ToString("MMM d, yyyy") ?? "Due Date")
                 </button>
-                <button class="meta-btn border round on-surface">
-                    <Icon Type="event_repeat"/>
-                    Repeat
-                </button>
+                <input type="date"
+                       @ref="dateInputRef"
+                       style="position:absolute; width:0; height:0; opacity:0; pointer-events:none;"
+                       @bind="dueDate"
+                />
+                @* <button class="meta-btn border round on-surface"> *@
+                @*     <Icon Type="event_repeat"/> *@
+                @*     Repeat *@
+                @* </button> *@
             </div>
 
             @if (TaskToEdit != null)
             {
-                <button class="round" @onclick="editTask">
+                <button class="round" @onclick="createTask">
                     <Icon Type="@Icons.EDIT"/>
                     Edit Task
                 </button>
@@ -106,8 +138,29 @@
     </div>
 </dialog>
 
+<script>
+    //BeerCSS picker not workie, we have to write shitscript
+
+    window.showDatePicker = (element) => {
+        if (element && typeof element.showPicker === "function") {
+            element.showPicker();
+        } else if (element) {
+            element.focus();
+            element.click();
+        }
+    };
+
+</script>
 
 <style>
+
+    dialog.modal {
+        overflow: visible !important;
+    }
+
+    dialog.modal .modal-content {
+        overflow: visible !important;
+    }
 
     dialog.modal {
         border-radius: 20px;

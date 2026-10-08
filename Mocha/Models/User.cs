@@ -30,8 +30,7 @@ public record User(
         .Field(Settings.BINARY_CODEC.Default(Settings.Default), c => c.Settings)
         .Build((guid, discordid, username, displayname, profileimageurl, isadmin, lastlogin, settings) => new User(guid, discordid, username, displayname, profileimageurl, isadmin, lastlogin, settings));
 
-    public static readonly Codec<User> CODEC = StructCodec
-        .For<User>()
+    public static readonly Codec<User> CODEC = StructCodec.For<User>()
         .Field("Guid", Codecs.GUID, c => c.Guid)
         .Field("DiscordId", Codecs.LONG, c => c.DiscordId)
         .Field("Username", Codecs.STRING, c => c.Username)
@@ -51,7 +50,6 @@ public record User(
         valueSerializer: NocturneSerializer.FromCodec(BINARY_CODEC),
         migrationStrategy: null
     );
-
 
     public IEnumerable<Day> FindAllDays() => Day.DATABASE_COLLECTION.FindAllWhere(d => d.User == Guid);
 }

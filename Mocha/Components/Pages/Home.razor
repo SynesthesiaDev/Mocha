@@ -1,5 +1,7 @@
 ﻿@page "/"
 @using global::Mocha.Components.Pages.HomeComponents
+@using global::Mocha.Components.TaskComponents
+@using global::Mocha.Models
 @rendermode InteractiveServer
 @inherits HasContext
 
@@ -25,6 +27,11 @@
 
         return $"{day}{suffix} of {date:MMMM}";
     }
+
+    private bool filter(MochaTask task)
+    {
+        return task.ScheduledDate == Context.Day!.Date;
+    }
 }
 
 <PageTitle>Home</PageTitle>
@@ -39,5 +46,13 @@
     }
 
 </h1>
+
+<Gap Size="48px"></Gap>
+
+@if (Context.Loaded)
+{
+    <TaskContainer Filter="filter"/>
+}
+
 
 

@@ -23,10 +23,10 @@ public record MochaTask(
     Guid? RepeatTemplateId
 )
 {
-    public static readonly MochaTask SAMPLE_TASK = new MochaTask
+    public static MochaTask Empty(User user) => new MochaTask
     (
         Guid.NewGuid(),
-        Guid.NewGuid(),
+        user.Guid,
         "Test",
         "this task is just for testing!",
         null,

@@ -1,0 +1,17 @@
+<div style="@getStyle()"></div>
+
+@code {
+    [Parameter]
+    public string Size { get; set; } = "1rem";
+
+    [Parameter]
+    public string Direction { get; set; } = "vertical";
+
+    private string getStyle()
+    {
+        return Direction == "vertical"
+            ? $"height: {Size};"
+            : $"width: {Size};";
+    }
+}
+

@@ -5,11 +5,11 @@
     [Parameter]
     public required Day? Day { get; set; }
 
-    private bool active = false;
+    private bool active;
 
 }
 
-<article class="border focusing @(active ? "primary" : "surface-container-high")">
+<div class="card focusing @(active ? "primary" : "surface-container-high")">
     <div class="left">
         <p class="hint @(active ? "muted-active" : "")">Currently focusing</p>
         <p class="header @(active ? "active-text" : "")"><b>Make journal use nocturne db</b></p>
@@ -21,9 +21,16 @@
             <i class="extra">play_pause</i>
         </button>
     </div>
-</article>
+</div>
 
 <style>
+
+    .card {
+        gap: 16px;
+        padding: 16px;
+        margin-top: 24px;
+        background: #382E2B;
+    }
 
     .focusing {
         display: flex;

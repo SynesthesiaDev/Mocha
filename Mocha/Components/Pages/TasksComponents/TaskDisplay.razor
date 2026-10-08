@@ -1,3 +1,4 @@
+@using global::Mocha.Extensions
 @using global::Mocha.Models
 @using Synesthesia.Utils.Extensions
 
@@ -10,7 +11,13 @@
     public required MochaContext Context { get; set; }
 
     [Parameter]
-    public required bool IsTaskDumbView { get; set; }
+    public required bool IsTaskDumpView { get; set; }
+
+    [Parameter]
+    public required bool IsScheduledForToday { get; set; }
+
+    [Inject]
+    private IJSRuntime java8RuntimeEnvironment { get; set; } = null!;
 
     private void delete()
     {
@@ -23,24 +30,77 @@
         Context.RequestTaskEdit(Task);
     }
 
+    private void changeScheduleDate(DateOnly? date)
+    {
+        var task = Task with { ScheduledDate = date };
+
+        MochaTask.DATABASE_COLLECTION.Insert(task.Id, task);
+        Context.NotifyChanged();
+    }
+
+    private ElementReference dateInputRef;
+
+    private async Task openDatePicker()
+    {
+        await java8RuntimeEnvironment.InvokeVoidAsync("showDatePicker", dateInputRef);
+    }
+
+    private void onDatePicked(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            changeScheduleDate(null);
+        }
+        else if (DateOnly.TryParse(value, out var date))
+        {
+            changeScheduleDate(date);
+        }
+    }
+
 }
 
-<div class="task">
+<div class="task @(IsScheduledForToday && IsTaskDumpView ? "today" : "")">
     <div class="task-left">
         <p class="title"><b>@Task.Title</b></p>
         @if (Task.Description != null)
         {
             <p class="subtitle">@Task.Description.CutIfTooLong(100)</p>
         }
+
         <div>
-            <button class="chip round primary">
-                <Icon Type="@Icons.JOURNAL"/>
-                Journal / Mocha
-            </button>
-            <button class="chip round">
-                <Icon Type="@Icons.REPEAT"/>
-                Repeats Every Day
-            </button>
+            @* <button class="chip round primary"> *@
+            @*     <Icon Type="@Icons.JOURNAL"/> *@
+            @*     Journal / Mocha *@
+            @* </button> *@
+            @* <button class="chip round"> *@
+            @*     <Icon Type="@Icons.REPEAT"/> *@
+            @*     Repeats Every Day *@
+            @* </button> *@
+
+            @if (Task.ScheduledDate != null)
+            {
+                <button class="chip round primary">
+                    <Icon Type="@Icons.CALENDAR_CHECK"/>
+                    @Task.ScheduledDate.Value.ToString("MMM d, yyyy")
+                </button>
+            }
+
+            @if (Task.DueDate != null)
+            {
+                <button class="chip round on-surface-opacity-75">
+                    <Icon Type="@Icons.CALENDAR_DUE"/>
+                    @Task.DueDate.Value.ToString("MMM d, yyyy")
+                </button>
+            }
+
+            @if (Task.EnergyLevel != null)
+            {
+                <button class="chip round on-surface-opacity-75">
+                    <Icon Type="@Icons.ENERGY"/>
+                    @Task.EnergyLevel.GetDisplayNameAttribute()
+                </button>
+            }
         </div>
     </div>
 
@@ -63,12 +123,39 @@
             </menu>
         </div>
 
-
-        @if (IsTaskDumbView)
+        @if (IsTaskDumpView)
         {
-            <button class="square extra">
-                <Icon Type="@Icons.CALENDAR"/>
-            </button>
+            <div>
+                <button class="square extra">
+                    <Icon Type="@(Task.ScheduledDate != null ? Icons.CALENDAR_CHECK : Icons.CALENDAR)"/>
+                </button>
+                <menu class="no-wrap">
+                    @if (Task.ScheduledDate == null)
+                    {
+                        <li @onclick="() => changeScheduleDate(DateTimeOffset.Now.ToAppDay())">
+                            <i>@Icons.ADD</i>
+                            <span>Today</span>
+                        </li>
+                    }
+                    else
+                    {
+                        <li @onclick="() => changeScheduleDate(null)">
+                            <i>@Icons.REMOVE</i>
+                            <span>Unschedule</span>
+                        </li>
+                    }
+
+                    <li @onclick="openDatePicker">
+                        <i>@Icons.CALENDAR</i>
+                        <span>Another Date</span>
+                    </li>
+                </menu>
+                <input type="date"
+                       @ref="dateInputRef"
+                       style="position:absolute; width:0; height:0; opacity:0; pointer-events:none;"
+                       @onchange="onDatePicked"
+                />
+            </div>
         }
         else
         {
@@ -87,6 +174,12 @@
 
 
 <style>
+
+    .today {
+        border-color: var(--primary);
+        border-width: 3px;
+        border-style: solid;
+    }
 
     .fab {
         background: #4F4441;
@@ -136,6 +229,21 @@
     .chip.round {
         line-height: 1;
         padding: 4px 12px;
-        margin: 0;
+        margin-right: 8px;
+        /*opacity: 80%;*/
     }
 </style>
+
+<script>
+    //BeerCSS picker not workie, we have to write shitscript
+
+    window.showDatePicker = (element) => {
+        if (element && typeof element.showPicker === "function") {
+            element.showPicker();
+        } else if (element) {
+            element.focus();
+            element.click();
+        }
+    };
+
+</script>
