@@ -1,0 +1,35 @@
+
+@code {
+
+    [Parameter]
+    public string Value { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    private string? error;
+
+    private Task OnInputChanged(ChangeEventArgs e)
+    {
+        var text = (e.Value?.ToString() ?? string.Empty);
+        error = null;
+
+        if (string.IsNullOrEmpty(text) || text.IsWhiteSpace())
+        {
+            error = "Title cannot be empty";
+            return Task.CompletedTask;
+        }
+
+        return ValueChanged.InvokeAsync(e.Value?.ToString() ?? string.Empty);
+    }
+
+}
+
+<div class="field label fill border @(error != null ? "invalid" : "")">
+    <input type="text"
+           class="modal-input @(error != null ? "" : "input-border")"
+           value="@Value"
+           @oninput="OnInputChanged"/>
+    <label class="on-surface-opacity">Title</label>
+    <output class="invalid">@error</output>
+</div>

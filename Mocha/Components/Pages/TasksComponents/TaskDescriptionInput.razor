@@ -1,0 +1,30 @@
+@using Synesthesia.Utils.Extensions
+@code {
+    [Parameter]
+    public string Value { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    private string? error;
+
+    private Task OnInputChanged(ChangeEventArgs e)
+    {
+        var text = e.Value?.ToString() ?? string.Empty;
+        error = null;
+
+        if (!text.IsEmpty() && text.Length >= 300)
+        {
+            error = "Description can be max 300 chars long";
+            return Task.CompletedTask;
+        }
+
+        return ValueChanged.InvokeAsync(e.Value?.ToString() ?? string.Empty);
+    }
+}
+
+<div class="field label fill border @(error != null ? "invalid" : "")">
+    <textarea class="modal-input @(error != null ? "" : "input-border")" value="@Value" rows="4" @oninput="OnInputChanged"></textarea>
+    <label class="on-surface-opacity">Description</label>
+    <output class="invalid">@error</output>
+</div>

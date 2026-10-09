@@ -32,6 +32,8 @@
 
     private void createTask()
     {
+        if(string.IsNullOrEmpty(taskTitle)) return;
+
         var taskToEdit = TaskToEdit ?? MochaTask.Empty(Context.User!);
 
         var editedTask = taskToEdit with
@@ -74,26 +76,23 @@
         if (!Context.Loaded) return;
         privacy = state;
     }
-
 }
-
 
 <dialog id="task-modal" class="modal surface-container-high @(active ? "active" : "")">
     <div class="modal-content">
 
-        <div class="field label fill border">
-            <input type="text" class="modal-input" @bind="taskTitle">
-            <label class="on-surface-opacity">Title</label>
-        </div>
+        <TaskTitleLabel @bind-Value="taskTitle"/>
 
-        <div class="field label fill border">
-            <textarea class="modal-input" rows="4" @bind="taskDescription"></textarea>
-            <label class="on-surface-opacity">Description</label>
-        </div>
+        <TaskDescriptionInput @bind-Value="taskDescription"/>
+        @* <div class="field label fill border"> *@
+        @*     <textarea class="modal-input" rows="4" @bind="taskDescription"></textarea> *@
+        @*     <label class="on-surface-opacity">Description</label> *@
+        @* </div> *@
 
         <br>
 
         <div class="modal-footer">
+
             <div class="meta-buttons">
                 @* <button class="border on-surface round"> *@
                 @*     <Icon Type="expand_more"/> *@
@@ -125,8 +124,7 @@
                 <input type="date"
                        @ref="dateInputRef"
                        style="position:absolute; width:0; height:0; opacity:0; pointer-events:none;"
-                       @bind="dueDate"
-                />
+                       @bind="dueDate"/>
                 @* <button class="meta-btn border round on-surface"> *@
                 @*     <Icon Type="event_repeat"/> *@
                 @*     Repeat *@
@@ -198,9 +196,11 @@
 
     .modal-input {
         background: #4F4441 !important;
-        border-color: color-mix(in srgb, var(--on-surface) 25%, transparent) !important;
     }
 
+    .input-border {
+        border-color: color-mix(in srgb, var(--on-surface) 25%, transparent) !important;
+    }
 
     .modal-input::placeholder, .modal-textarea::placeholder {
         color: #8A8080;
