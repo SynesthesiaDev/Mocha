@@ -29,7 +29,7 @@
             assignedProject = null;
             projectChipStyleString = string.Empty;
             return;
-        };
+        }
         assignedProject = MochaProject.DB_COLLECTION.FindOrNull(Task.ProjectId.Value);
         projectChipStyleString = assignedProject == null ? string.Empty : $"color: {assignedProject.ColorHex} !important; border-color: {assignedProject.ColorHex} !important";
     }
@@ -103,7 +103,7 @@
             @*     Repeats Every Day *@
             @* </button> *@
 
-            @if (Task.ScheduledDate != null)
+            @if (Task.ScheduledDate != null && IsTaskDumpView)
             {
                 <button class="chip round primary">
                     <Icon Type="@Icons.CALENDAR_CHECK"/>
