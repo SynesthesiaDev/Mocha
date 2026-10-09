@@ -24,6 +24,7 @@
     private string taskDescription = string.Empty;
     private EnergyLevel? energyLevel;
     private DateOnly? dueDate;
+    private bool privacy;
 
     private ElementReference dateInputRef;
 
@@ -38,7 +39,8 @@
             Title = taskTitle,
             Description = taskDescription,
             DueDate = dueDate,
-            EnergyLevel = energyLevel
+            EnergyLevel = energyLevel,
+            IsPrivacySensitive = privacy
         };
 
 
@@ -65,6 +67,12 @@
     private async Task openDatePicker()
     {
         await java8RuntimeEnvironment.InvokeVoidAsync("showDatePicker", dateInputRef);
+    }
+
+    private void setPrivacy(bool state)
+    {
+        if (!Context.Loaded) return;
+        privacy = state;
     }
 
 }
@@ -123,6 +131,22 @@
                 @*     <Icon Type="event_repeat"/> *@
                 @*     Repeat *@
                 @* </button> *@
+                @if (!privacy)
+                {
+                    <button class="border on-surface round" @onclick="() => setPrivacy(true)">
+
+                        <Icon Type="@Icons.VISIBILITY"/>
+                        <span>Visible</span>
+                    </button>
+                }
+                else
+                {
+                    <button class="border on-surface round" @onclick="() => setPrivacy(false)">
+                        <Icon Type="@Icons.VISIBILITY_OFF"/>
+                        <span>Private</span>
+                    </button>
+                }
+
             </div>
 
             @if (TaskToEdit != null)

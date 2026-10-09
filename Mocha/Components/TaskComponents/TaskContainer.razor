@@ -26,6 +26,11 @@
         if (Context.Loaded)
         {
             var tasks = MochaTask.DATABASE_COLLECTION.FindAllWhere(t => t.OwningUserId == Context.User!.Guid && Filter.Invoke(t)).TakeLast(20).ToList();
+            if (Context.User!.PrivacyEnabled)
+            {
+                tasks = tasks.Filter(t => !t.IsPrivacySensitive);
+            }
+
             if (ShowCompletedTasksSeparately)
             {
                 todoTasks = tasks.Filter(t => t.Status != MochaTaskStatus.Done);

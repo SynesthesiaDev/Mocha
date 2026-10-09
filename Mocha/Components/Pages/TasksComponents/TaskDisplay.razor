@@ -69,7 +69,14 @@
 
 <div class="task @(IsScheduledForToday && IsTaskDumpView ? "today" : "") @(Task.Status == MochaTaskStatus.Done ? "completed" : "")">
     <div class="task-left">
-        <p class="title"><b>@Task.Title</b></p>
+        <p class="title">
+            @if (Task.IsPrivacySensitive)
+            {
+                <span class="privacy on-surface-opacity-75"><Icon Type="@Icons.VISIBILITY_OFF"/></span>
+
+            }
+            <b>@Task.Title</b>
+        </p>
         @if (Task.Description != null)
         {
             <p class="subtitle">@Task.Description.CutIfTooLong(100)</p>
@@ -203,6 +210,10 @@
 
 
 <style>
+
+    .privacy {
+        margin-right: 8px;
+    }
 
     .completed {
         opacity: 50%;

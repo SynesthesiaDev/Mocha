@@ -1,3 +1,4 @@
+@using global::Mocha.Models
 @inherits HasContext
 
 @code {
@@ -10,6 +11,15 @@
         }
     }
 
+    private void setPrivacy(bool state)
+    {
+        if(!Context.Loaded) return;
+
+        var user = Context.User! with { PrivacyEnabled = state };
+        User.DB_COLLECTION.Insert(user.Guid, user);
+        Context.SetUser(user);
+    }
+
 }
 
 <nav class="top custom-navbar @(Context.User == null ? "disabled" : "")">
@@ -17,9 +27,19 @@
 
     <nav class="toolbar surface-container-high">
 
-        <a>
-            <i>@Icons.VISIBILITY</i>
-        </a>
+        @if (Context.User?.PrivacyEnabled == false)
+        {
+            <a @onclick="() => setPrivacy(true)">
+                <i>@Icons.VISIBILITY</i>
+            </a>
+        }
+        else
+        {
+            <a @onclick="() => setPrivacy(false)">
+                <i>@Icons.VISIBILITY_OFF</i>
+            </a>
+        }
+
         <a href="/settings">
             <i>@Icons.SETTINGS</i>
         </a>
