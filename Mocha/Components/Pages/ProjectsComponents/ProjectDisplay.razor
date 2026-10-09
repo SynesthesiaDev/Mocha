@@ -1,0 +1,94 @@
+@using global::Mocha.Models
+
+@code {
+
+    [Parameter]
+    public required MochaProject Project { get; set; }
+
+    [Parameter]
+    public required MochaContext Context { get; set; }
+
+    private void delete()
+    {
+        MochaProject.DB_COLLECTION.Delete(Project.Id);
+        Context.NotifyChanged();
+    }
+
+    private void edit()
+    {
+        Context.RequestProjectEdit(Project);
+    }
+}
+
+<div class="task">
+    <div class="task-left">
+        <p class="title" style="color: @Project.ColorHex">
+            <b>@Project.Name</b>
+        </p>
+
+    </div>
+
+    <div class="task-right">
+
+        <div>
+            <button class="square extra fab">
+                <Icon Type="@Icons.DOTS"/>
+            </button>
+
+            <menu class="no-wrap">
+                <li @onclick="edit">
+                    <i>@Icons.EDIT</i>
+                    <span>Edit</span>
+                </li>
+                <li @onclick="delete">
+                    <i>@Icons.DELETE</i>
+                    <span>Delete</span>
+                </li>
+            </menu>
+        </div>
+
+    </div>
+</div>
+<br>
+
+<style>
+
+    .fab {
+        background: #4F4441;
+        color: #9C8E89
+    }
+
+    .title {
+        font-size: 24px;
+    }
+
+    .task {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        line-height: 1rem;
+        gap: 16px;
+        padding: 16px;
+        background: #382E2B;
+    }
+
+    .task-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-shrink: 0;
+    }
+
+    .task-left {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .title {
+        font-size: 24px;
+        line-height: 1.2;
+        margin: 0;
+    }
+</style>

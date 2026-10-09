@@ -18,6 +18,9 @@
     [Inject]
     private IJSRuntime java8RuntimeEnvironment { get; set; } = null!;
 
+
+    private List<MochaProject> availableProjects = [];
+
     private readonly bool active = true;
 
     private string taskTitle = string.Empty;
@@ -25,7 +28,9 @@
     private EnergyLevel? energyLevel;
     private DateOnly? dueDate;
     private bool privacy;
+    private MochaProject? assignedProject;
 
+    private string projectChipStyleString = string.Empty;
     private ElementReference dateInputRef;
 
     private void setEnergyLevel(EnergyLevel? level) => energyLevel = level;
@@ -42,9 +47,9 @@
             Description = taskDescription,
             DueDate = dueDate,
             EnergyLevel = energyLevel,
-            IsPrivacySensitive = privacy
+            IsPrivacySensitive = privacy,
+            ProjectId = assignedProject?.Id
         };
-
 
         var finalTask = Append.Invoke(editedTask);
         MochaTask.DATABASE_COLLECTION.Insert(finalTask.Id, finalTask);
@@ -60,10 +65,17 @@
         {
             taskTitle = TaskToEdit.Title;
             taskDescription = TaskToEdit.Description ?? string.Empty;
+            if (TaskToEdit.ProjectId != null)
+            {
+                assignedProject = MochaProject.DB_COLLECTION.FindOrNull(TaskToEdit.ProjectId.Value);
+                projectChipStyleString = assignedProject == null ? string.Empty : $"color: {assignedProject.ColorHex} !important; border-color: {assignedProject.ColorHex} !important";
+            }
         }
 
         dueDate = TaskToEdit?.DueDate;
         energyLevel = TaskToEdit?.EnergyLevel;
+
+        availableProjects = MochaProject.FindAllForUser(Context.User!);
     }
 
     private async Task openDatePicker()
@@ -76,24 +88,48 @@
         if (!Context.Loaded) return;
         privacy = state;
     }
+
+    private void setProject(MochaProject? project)
+    {
+        if(!Context.Loaded) return;
+        assignedProject = project;
+        projectChipStyleString = project == null ? string.Empty : $"color: {project.ColorHex} !important; border-color: {project.ColorHex} !important";
+        StateHasChanged();
+        Context.NotifyChanged();
+
+    }
 }
 
 <dialog id="task-modal" class="modal surface-container-high @(active ? "active" : "")">
     <div class="modal-content">
 
-        <TaskTitleLabel @bind-Value="taskTitle"/>
-
+        <TitleInput @bind-Value="taskTitle"/>
         <TaskDescriptionInput @bind-Value="taskDescription"/>
-        @* <div class="field label fill border"> *@
-        @*     <textarea class="modal-input" rows="4" @bind="taskDescription"></textarea> *@
-        @*     <label class="on-surface-opacity">Description</label> *@
-        @* </div> *@
 
         <br>
 
         <div class="modal-footer">
 
             <div class="meta-buttons">
+
+                <div>
+                    <button class="border on-surface round" style="@projectChipStyleString">
+                        <Icon Type="@Icons.PROJECTS"/>
+                        @(assignedProject?.Name ?? "Project")
+                    </button>
+                    <menu>
+                        @foreach (var project in availableProjects)
+                        {
+                            <li style="color: @project.ColorHex" @onclick="() => setProject(project)">@project.Name</li>
+                        }
+                        <li>
+                            <hr>
+                            <hr>
+                        </li>
+                        <li @onclick="() => setProject(null)">Reset</li>
+                    </menu>
+                </div>
+
                 @* <button class="border on-surface round"> *@
                 @*     <Icon Type="expand_more"/> *@
                 @*     Project *@

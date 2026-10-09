@@ -12,6 +12,7 @@ public class MochaContext
     public Day? Day { get; private set; }
 
     public MochaTask? RequestedTaskEdit { get; private set; }
+    public MochaProject? RequestedProjectEdit { get; private set; }
 
     private readonly EventDispatcher<MochaContext> backingEventDispatcher = new EventDispatcher<MochaContext>();
 
@@ -40,6 +41,13 @@ public class MochaContext
         RequestedTaskEdit = task;
         NotifyChanged();
     }
+
+    public void RequestProjectEdit(MochaProject? task)
+    {
+        RequestedProjectEdit = task;
+        NotifyChanged();
+    }
+
 
     public void NotifyChanged() => backingEventDispatcher.Dispatch(this);
 

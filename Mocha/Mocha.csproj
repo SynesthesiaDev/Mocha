@@ -25,4 +25,8 @@
       <PackageReference Include="SynesthesiaUtils" Version="2026.925.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <AdditionalFiles Include="Components\Pages\ProjectsComponents\TaskEditModal.razor" />
+    </ItemGroup>
+
 </Project>

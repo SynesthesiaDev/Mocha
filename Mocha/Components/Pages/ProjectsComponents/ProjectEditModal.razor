@@ -1,0 +1,154 @@
+@using global::Mocha.Components.Pages.TasksComponents
+@using global::Mocha.Models
+
+@code {
+
+    [Parameter]
+    public required MochaProject? ProjectToEdit { get; set; }
+
+    [Parameter]
+    public required MochaContext Context { get; set; }
+
+    [Parameter]
+    public Action<MochaProject?>? Callback { get; set; }
+
+    [Parameter]
+    public Func<MochaProject, MochaProject> Append { get; set; } = t => t;
+
+    private readonly bool active = true;
+
+    private string projectName = string.Empty;
+    private string projectColorHex = "#ffffff";
+
+    private void createTask()
+    {
+        if(string.IsNullOrEmpty(projectName)) return;
+
+        var projectToEdit = ProjectToEdit ?? new MochaProject(Guid.NewGuid(), Guid.Empty, string.Empty, string.Empty);
+
+        var editedTask = projectToEdit with
+        {
+            Name = projectName,
+            ColorHex = projectColorHex,
+            OwningUserId = Context.User!.Guid,
+        };
+
+        var finalProject = Append.Invoke(editedTask);
+        MochaProject.DB_COLLECTION.Insert(finalProject.Id, finalProject);
+
+        Context.NotifyChanged();
+        StateHasChanged();
+        Callback?.Invoke(finalProject);
+    }
+
+    protected override void OnInitialized()
+    {
+        if (ProjectToEdit == null) return;
+
+        projectName = ProjectToEdit.Name;
+        projectColorHex = ProjectToEdit.ColorHex;
+    }
+
+}
+
+<dialog id="task-modal" class="modal surface-container-high @(active ? "active" : "")">
+    <div class="modal-content">
+
+        <TitleInput @bind-Value="projectName"/>
+
+        <br>
+
+        <div class="modal-footer">
+
+            <div>
+                <button style="background-color: @projectColorHex !important">
+                    <i>palette</i>
+                    <span>Color</span>
+                </button>
+                <input type="color" @bind="projectColorHex" @bind:event="oninput">
+            </div>
+
+            @if (ProjectToEdit != null)
+            {
+                <button class="round" @onclick="createTask">
+                    <Icon Type="@Icons.EDIT"/>
+                    Edit Project
+                </button>
+            }
+            else
+            {
+                <button class="round" @onclick="createTask">
+                    <Icon Type="@Icons.ADD"/>
+                    Create Project
+                </button>
+            }
+        </div>
+    </div>
+</dialog>
+
+<style>
+
+    dialog.modal {
+        overflow: visible !important;
+    }
+
+    dialog.modal .modal-content {
+        overflow: visible !important;
+    }
+
+    dialog.modal {
+        border-radius: 20px;
+        width: min(750px, 90vw);
+    }
+
+    .modal-input {
+        background: #4F4441 !important;
+    }
+
+    .input-border {
+        border-color: color-mix(in srgb, var(--on-surface) 25%, transparent) !important;
+    }
+
+    .modal-input::placeholder, .modal-textarea::placeholder {
+        color: #8A8080;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .meta-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .meta-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        font-size: 14px;
+        border-color: #5A5050;
+        color: #D0D0D0;
+    }
+
+    .meta-btn:hover {
+        background-color: #3B3333;
+    }
+
+    .create-btn {
+        background-color: #B6E87E;
+        color: #1C1C1C;
+        font-weight: 600;
+        padding: 10px 28px;
+    }
+
+    .create-btn:hover {
+        background-color: #A3D666;
+    }
+</style>

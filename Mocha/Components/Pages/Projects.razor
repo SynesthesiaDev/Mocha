@@ -1,0 +1,58 @@
+@page "/projects"
+@rendermode InteractiveServer
+@using global::Mocha.Components.Pages.ProjectsComponents
+@using global::Mocha.Models
+@inherits HasContext
+
+@code {
+
+    private List<MochaProject> projects = [];
+
+    private bool modalOpen;
+    private MochaProject? projectToEdit;
+
+    protected override void OnContextChanged()
+    {
+        if (Context.Loaded)
+        {
+            projects = MochaProject.DB_COLLECTION.FindAllWhere(p => p.OwningUserId == Context.User!.Guid).ToList();
+            projectToEdit = Context.RequestedProjectEdit;
+            if (projectToEdit != null)
+            {
+                modalOpen = true;
+            }
+        }
+    }
+
+    private void close()
+    {
+        modalOpen = false;
+        Context.RequestProjectEdit(null);
+    }
+
+}
+
+<div class="overlay @(modalOpen ? "active" : "")" @onclick="close"></div>
+
+<div class="row">
+    <div class="max">
+        <h5>Projects</h5>
+    </div>
+    <button @onclick="() => modalOpen = true">
+        <Icon Type="@Icons.ADD"/>
+        Create
+    </button>
+</div>
+<br>
+
+@if (modalOpen)
+{
+    <ProjectEditModal ProjectToEdit="projectToEdit" Context="Context" Callback="_ => close()"/>
+}
+
+
+@foreach (var project in projects)
+{
+    <ProjectDisplay Context="Context" Project="project"/>
+}
+

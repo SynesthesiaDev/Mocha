@@ -11,12 +11,12 @@
 
     private Task OnInputChanged(ChangeEventArgs e)
     {
-        var text = (e.Value?.ToString() ?? string.Empty);
+        var text = e.Value?.ToString() ?? string.Empty;
         error = null;
 
         if (string.IsNullOrEmpty(text) || text.IsWhiteSpace())
         {
-            error = "Title cannot be empty";
+            error = "Field cannot be empty";
             return Task.CompletedTask;
         }
 
@@ -30,6 +30,6 @@
            class="modal-input @(error != null ? "" : "input-border")"
            value="@Value"
            @oninput="OnInputChanged"/>
-    <label class="on-surface-opacity">Title</label>
+    <label class="on-surface-opacity">Name</label>
     <output class="invalid">@error</output>
 </div>

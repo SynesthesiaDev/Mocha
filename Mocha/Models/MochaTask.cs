@@ -45,7 +45,6 @@ public record MochaTask(
     );
 
     public User ResolvedUser => field ??= User.DB_COLLECTION.Find(OwningUserId);
-    // public User ResolvedProject => field ??= User.DB_COLLECTION.Find(OwningUserId);
 
     public static readonly IBinaryCodec<MochaTask> BINARY_CODEC = BinaryCodecs.For<MochaTask>()
         .Field(BinaryCodecs.GUID, c => c.Id)

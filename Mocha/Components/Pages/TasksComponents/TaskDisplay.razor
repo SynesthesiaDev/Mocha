@@ -16,8 +16,23 @@
     public bool IsCompleted => Task.Status == MochaTaskStatus.Done;
     public bool IsScheduledForToday => Task.ScheduledDate == Context.Day!.Date;
 
+    private MochaProject? assignedProject;
+
     [Inject]
     private IJSRuntime java8RuntimeEnvironment { get; set; } = null!;
+    private string projectChipStyleString = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        if (Task.ProjectId == null)
+        {
+            assignedProject = null;
+            projectChipStyleString = string.Empty;
+            return;
+        };
+        assignedProject = MochaProject.DB_COLLECTION.FindOrNull(Task.ProjectId.Value);
+        projectChipStyleString = assignedProject == null ? string.Empty : $"color: {assignedProject.ColorHex} !important; border-color: {assignedProject.ColorHex} !important";
+    }
 
     private void delete()
     {
@@ -82,10 +97,7 @@
         }
 
         <div>
-            @* <button class="chip round primary"> *@
-            @*     <Icon Type="@Icons.JOURNAL"/> *@
-            @*     Journal / Mocha *@
-            @* </button> *@
+
             @* <button class="chip round"> *@
             @*     <Icon Type="@Icons.REPEAT"/> *@
             @*     Repeats Every Day *@
@@ -96,6 +108,14 @@
                 <button class="chip round primary">
                     <Icon Type="@Icons.CALENDAR_CHECK"/>
                     @Task.ScheduledDate.Value.ToString("MMM d, yyyy")
+                </button>
+            }
+
+            @if (assignedProject != null)
+            {
+                <button class="chip round border" style="@projectChipStyleString">
+                    <Icon Type="@Icons.PROJECTS"/>
+                    @assignedProject.Name
                 </button>
             }
 

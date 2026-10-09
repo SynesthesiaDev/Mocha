@@ -54,6 +54,7 @@ public static class Icons
     public const string UNDO = "undo";
     public const string VISIBILITY = "visibility";
     public const string VISIBILITY_OFF = "visibility_off";
+    public const string PROJECTS = "folder";
 
 
     public static string GetHeartPtsIcon(int heartPts)
