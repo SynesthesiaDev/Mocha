@@ -20,7 +20,7 @@
       <PackageReference Include="SolarCalculator" Version="3.6.1" />
       <PackageReference Include="SynesthesiaDev.Codon.Codon" Version="2026.925.0" />
       <PackageReference Include="SynesthesiaDev.ConfigLib" Version="2026.902.0" />
-      <PackageReference Include="SynesthesiaDev.Nocturne.Database" Version="2026.1008.1" />
+      <PackageReference Include="SynesthesiaDev.Nocturne.Database" Version="2026.1010.0" />
       <PackageReference Include="SynesthesiaDev.Synx.Codon" Version="2026.902.0" />
       <PackageReference Include="SynesthesiaUtils" Version="2026.925.0" />
     </ItemGroup>
