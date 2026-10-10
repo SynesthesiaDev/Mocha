@@ -11,11 +11,6 @@ ARG TARGETARCH
 WORKDIR /src
 COPY ["Mocha/Mocha.csproj", "Mocha/"]
 
-COPY ["Mocha/**/*.razor", "Mocha/"]
-COPY ["Mocha/**/*.razor.cs", "Mocha/"]
-COPY ["Mocha/**/_Imports.razor", "Mocha/"]
-COPY ["Mocha/**/App.razor", "Mocha/"]
-
 RUN case "$TARGETARCH" in \
       amd64) echo x64 > /tmp/arch ;; \
       arm64) echo arm64 > /tmp/arch ;; \
