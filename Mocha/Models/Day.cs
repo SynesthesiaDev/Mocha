@@ -46,6 +46,8 @@ public record Day(
 
     public record FocusedTask(Guid TaskId, TimeSpan TotalElapsed, DateTimeOffset? LastStartAt, bool Paused)
     {
+        public static FocusedTask MakeFocused(MochaTask task) => new(task.Id, task.ElapsedTime, DateTimeOffset.Now, false);
+
         public static readonly IBinaryCodec<FocusedTask> BINARY_CODEC = BinaryCodecs.For<FocusedTask>()
             .Field(BinaryCodecs.GUID, c => c.TaskId)
             .Field(ExtraCodecs.TIME_SPAN_BINARY, c => c.TotalElapsed)

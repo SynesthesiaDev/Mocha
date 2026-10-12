@@ -79,6 +79,20 @@
             changeScheduleDate(date);
         }
     }
+
+
+    private void focus()
+    {
+        if (Context.FocusedTask?.TaskId == Task.Id)
+        {
+            Context.SetFocused(null);
+            return;
+        }
+
+        var focused = Day.FocusedTask.MakeFocused(Task);
+        Context.SetFocused(focused);
+
+    }
 }
 
 <div class="task @(IsScheduledForToday && IsTaskDumpView ? "today" : "") @(Task.Status == MochaTaskStatus.Done ? "completed" : "")">
@@ -145,6 +159,13 @@
             </button>
 
             <menu class="no-wrap">
+                @if (!IsTaskDumpView)
+                {
+                    <li @onclick="focus">
+                        <i>@Icons.PLAY</i>
+                        <span>Focus</span>
+                    </li>
+                }
                 <li @onclick="edit">
                     <i>@Icons.EDIT</i>
                     <span>Edit</span>
@@ -192,9 +213,9 @@
         }
         else
         {
-            <button class="square extra fab">
-                <Icon Type="@Icons.PLAY"/>
-            </button>
+            @* <button class="square extra fab"> *@
+            @*     <Icon Type="@Icons.ů"/> *@
+            @* </button> *@
 
             <div>
                 @if (!IsCompleted)

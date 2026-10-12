@@ -1,27 +1,116 @@
 @using global::Mocha.Models
+@inherits HasContext
 
 @code {
 
-    [Parameter]
-    public required Day? Day { get; set; }
-
     private bool active;
+    private Day.FocusedTask? focusedTask;
+    private MochaTask? resolvedTask;
+    private TimeSpan timeElapsed = TimeSpan.Zero;
+
+    private PeriodicTimer? timer;
+    private CancellationTokenSource? cts;
+
+
+    protected override void OnContextChanged()
+    {
+        focusedTask = Context.FocusedTask;
+        if (focusedTask == null) return;
+
+        resolvedTask = MochaTask.DATABASE_COLLECTION.Find(focusedTask.TaskId);
+        active = !focusedTask.Paused;
+
+        startTimer();
+    }
+
+    private void startTimer()
+    {
+        if (timer != null) return;
+
+        cts = new CancellationTokenSource();
+        timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        _ = runTicker(cts.Token);
+        timeElapsed = elapsed();
+    }
+
+    private TimeSpan elapsed()
+    {
+        if (focusedTask == null) return TimeSpan.Zero;
+
+        return focusedTask is { Paused: false, LastStartAt: { } start }
+            ? focusedTask.TotalElapsed + (DateTimeOffset.Now - start)
+            : focusedTask.TotalElapsed;
+    }
+
+    private void togglePause()
+    {
+        if (focusedTask == null) return;
+        var now = DateTimeOffset.Now;
+
+        focusedTask = focusedTask.Paused
+            ? focusedTask with { Paused = false, LastStartAt = now }
+            : focusedTask with
+            {
+                Paused = true,
+                TotalElapsed = focusedTask.TotalElapsed + (now - (focusedTask.LastStartAt ?? now)),
+                LastStartAt = null
+            };
+
+        active = !focusedTask.Paused;
+
+        Context.SetFocused(focusedTask);
+    }
+
+    private async Task runTicker(CancellationToken token)
+    {
+        try
+        {
+            while (await timer!.WaitForNextTickAsync(token))
+            {
+                if (active)
+                {
+                    timeElapsed = elapsed();
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+
+        }
+    }
+
+    private static string format(TimeSpan t) =>
+        t.TotalHours >= 1 ? $"{(int)t.TotalHours}h {t.Minutes}m {t.Seconds}s"
+        : t.TotalMinutes >= 1 ? $"{t.Minutes}m {t.Seconds}s"
+        : $"{t.Seconds}s";
+
+    public override void Dispose()
+    {
+        cts?.Dispose();
+        timer?.Dispose();
+        base.Dispose();
+    }
 
 }
 
-<div class="card focusing @(active ? "primary" : "surface-container-high")">
-    <div class="left">
-        <p class="hint @(active ? "muted-active" : "")">Currently focusing</p>
-        <p class="header @(active ? "active-text" : "")"><b>Make journal use nocturne db</b></p>
-    </div>
+@if (focusedTask != null && resolvedTask != null)
+{
+    <div class="card focusing @(active ? "primary" : "surface-container-highest")">
+        <div class="left">
+            <p class="hint @(active ? "muted-active" : "")">Currently focusing</p>
+            <p class="header @(active ? "active-text" : "")"><b>@resolvedTask.Title</b></p>
+        </div>
 
-    <div class="right">
-        <span class="timer @(active ? "muted-active" : "")">1h 34m 5s</span>
-        <button class="pause-btn @(active ? "pause-btn-active" : "")" aria-label="Pause" @onclick="() => active = !active">
-            <i class="extra">play_pause</i>
-        </button>
+        <div class="right">
+            <span class="timer @(active ? "muted-active" : "")">@format(timeElapsed)</span>
+            <button class="pause-btn @(active ? "pause-btn-active" : "")" aria-label="Pause"
+                    @onclick="togglePause">
+                <i class="extra">play_pause</i>
+            </button>
+        </div>
     </div>
-</div>
+}
 
 <style>
 

@@ -24,7 +24,8 @@ public record MochaTask(
     DateTimeOffset CreatedAt,
     Guid? RepeatTemplateId,
     bool IsPrivacySensitive,
-    DateTimeOffset? CompletedAt
+    DateTimeOffset? CompletedAt,
+    TimeSpan ElapsedTime
 )
 {
     public static MochaTask Empty(User user) => new MochaTask
@@ -41,7 +42,8 @@ public record MochaTask(
         DateTimeOffset.Now,
         null,
         false,
-        null
+        null,
+        TimeSpan.Zero
     );
 
     public User ResolvedUser => field ??= User.DB_COLLECTION.Find(OwningUserId);
@@ -60,16 +62,18 @@ public record MochaTask(
         .Field(BinaryCodecs.GUID.Optional(), c => Optional.Of<Guid>(c.RepeatTemplateId))
         .Field(BinaryCodecs.BOOLEAN, c => c.IsPrivacySensitive)
         .Field(ExtraCodecs.DATE_TIME_OFFSET_BINARY.Optional(), c => Optional.Of<DateTimeOffset>(c.CompletedAt))
-        .Build((id, owninguserid, title, description, projectid, scheduleddate, due, status, energy, createdat, repeat, privacySensitive, completedAt) => new MochaTask(id, owninguserid, title, description.ToNullableClass(), projectid.ToNullableStruct(), scheduleddate.ToNullableStruct(), due.ToNullableStruct(), status, energy.ToNullableStruct(), createdat, repeat.ToNullableStruct(), privacySensitive, completedAt.ToNullableStruct()));
+        .Field(ExtraCodecs.TIME_SPAN_BINARY, c => c.ElapsedTime)
+        .Build((id, owninguserid, title, description, projectid, scheduleddate, due, status, energy, createdat, repeat, privacySensitive, completedAt, elapsed) => new MochaTask(id, owninguserid, title, description.ToNullableClass(), projectid.ToNullableStruct(), scheduleddate.ToNullableStruct(), due.ToNullableStruct(), status, energy.ToNullableStruct(), createdat, repeat.ToNullableStruct(), privacySensitive, completedAt.ToNullableStruct(), elapsed));
 
     // Added IsPrivacySensitive
     public static readonly NocturneCollection<Guid, MochaTask> DATABASE_COLLECTION = Mocha.NOCTURNE_DATABASE.For(
         collectionKey: "tasks",
-        schemaVersion: 1,
+        schemaVersion: 2,
         keySerializer: KeySerializers.GUID,
         NocturneSerializer.FromCodec(BINARY_CODEC),
         migrationStrategy: IMigrationStrategy.Migrations()
             .Add(0, MochaTaskMigrations.MigrateFromV0)
+            .Add(1, MochaTaskMigrations.MigrateFromV1)
             .Build()
     );
 }
