@@ -5,7 +5,7 @@ namespace Mocha.Extensions;
 
 public static class DateTimeOffsetExtensions
 {
-    public static DateOnly ToAppDay(this DateTimeOffset instant)
+    public static DateOnly ToDateOnly(this DateTimeOffset instant)
     {
         var local = TimeZoneInfo.ConvertTime(instant, TimeZoneInfo.FindSystemTimeZoneById("Europe/Prague"));
         return DateOnly.FromDateTime(local.DateTime);

@@ -15,7 +15,7 @@
 
     private User? user;
     private Day? day;
-    private DateOnly currentSelectedDate = DateTimeOffset.UtcNow.ToAppDay();
+    private DateOnly currentSelectedDate = DateTimeOffset.UtcNow.ToDateOnly();
 
     private void updateDay()
     {
@@ -24,7 +24,7 @@
 
         currentSelectedDate = SelectedDay.HasValue
             ? DateOnly.FromDayNumber(SelectedDay.Value)
-            : DateTimeOffset.UtcNow.ToAppDay();
+            : DateTimeOffset.UtcNow.ToDateOnly();
 
 
         day = Day.GetOrCreate(currentSelectedDate, user);

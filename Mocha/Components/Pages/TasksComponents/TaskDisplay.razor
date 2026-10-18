@@ -15,6 +15,7 @@
 
     public bool IsCompleted => Task.Status == MochaTaskStatus.Done;
     public bool IsScheduledForToday => Task.ScheduledDate == Context.Day!.Date;
+    public bool IsScheduledForRealToday => Task.ScheduledDate == DateTimeOffset.Now.ToDateOnly();
 
     private MochaProject? assignedProject;
 
@@ -161,6 +162,14 @@
             <menu class="no-wrap">
                 @if (!IsTaskDumpView)
                 {
+                    if (!IsScheduledForRealToday)
+                    {
+                        <li @onclick="() => changeScheduleDate(DateTimeOffset.Now.ToDateOnly())">
+                            <i>@Icons.ADD</i>
+                            <span>Move to Today</span>
+                        </li>
+                    }
+
                     <li @onclick="focus">
                         <i>@Icons.PLAY</i>
                         <span>Focus</span>
@@ -186,7 +195,7 @@
                 <menu class="no-wrap">
                     @if (Task.ScheduledDate == null)
                     {
-                        <li @onclick="() => changeScheduleDate(DateTimeOffset.Now.ToAppDay())">
+                        <li @onclick="() => changeScheduleDate(DateTimeOffset.Now.ToDateOnly())">
                             <i>@Icons.ADD</i>
                             <span>Today</span>
                         </li>
