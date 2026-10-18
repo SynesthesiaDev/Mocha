@@ -21,6 +21,7 @@
 
     [Inject]
     private IJSRuntime java8RuntimeEnvironment { get; set; } = null!;
+
     private string projectChipStyleString = string.Empty;
 
     protected override void OnParametersSet()
@@ -31,6 +32,7 @@
             projectChipStyleString = string.Empty;
             return;
         }
+
         assignedProject = MochaProject.DB_COLLECTION.FindOrNull(Task.ProjectId.Value);
         projectChipStyleString = assignedProject == null ? string.Empty : $"color: {assignedProject.ColorHex} !important; border-color: {assignedProject.ColorHex} !important";
     }
@@ -50,6 +52,12 @@
     {
         var task = Task with { Status = status };
         MochaTask.DATABASE_COLLECTION.Insert(task.Id, task);
+
+        if (status == MochaTaskStatus.Done)
+        {
+            Context.SetFocused(null);
+        }
+
         Context.NotifyChanged();
     }
 
@@ -92,17 +100,17 @@
 
         var focused = Day.FocusedTask.MakeFocused(Task);
         Context.SetFocused(focused);
-
     }
+
 }
 
-<div class="task @(IsScheduledForToday && IsTaskDumpView ? "today" : "") @(Task.Status == MochaTaskStatus.Done ? "completed" : "")">
+<div
+    class="task @(IsScheduledForToday && IsTaskDumpView ? "today" : "") @(Task.Status == MochaTaskStatus.Done ? "completed" : "")">
     <div class="task-left">
         <p class="title">
             @if (Task.IsPrivacySensitive)
             {
                 <span class="privacy on-surface-opacity-75"><Icon Type="@Icons.VISIBILITY_OFF"/></span>
-
             }
             <b>@Task.Title</b>
         </p>
@@ -199,9 +207,22 @@
                             <i>@Icons.ADD</i>
                             <span>Today</span>
                         </li>
+
+                        <li @onclick="() => changeScheduleDate(DateTimeOffset.Now.AddDays(1).ToDateOnly())">
+                            <i>@Icons.ARROW_FORWARD</i>
+                            <span>Tomorrow</span>
+                        </li>
                     }
                     else
                     {
+                        if (!IsScheduledForToday)
+                        {
+                            <li @onclick="() => changeScheduleDate(DateTimeOffset.Now.ToDateOnly())">
+                                <i>@Icons.ADD</i>
+                                <span>Move to Today</span>
+                            </li>
+                        }
+
                         <li @onclick="() => changeScheduleDate(null)">
                             <i>@Icons.REMOVE</i>
                             <span>Unschedule</span>
@@ -222,10 +243,6 @@
         }
         else
         {
-            @* <button class="square extra fab"> *@
-            @*     <Icon Type="@Icons.ů"/> *@
-            @* </button> *@
-
             <div>
                 @if (!IsCompleted)
                 {
@@ -239,17 +256,6 @@
                         <Icon Type="@Icons.UNDO"/>
                     </button>
                 }
-
-                @* <menu class="no-wrap"> *@
-                @*     @foreach (var status in EnumExtensions.GetEntries<MochaTaskStatus>()) *@
-                @*     { *@
-                @*         <li> *@
-                @*             $1$ <i>@Icons.EDIT</i> #1# *@
-                @*             <span>@status.GetDisplayNameAttribute()</span> *@
-                @*         </li> *@
-                @*     } *@
-                @* </menu> *@
-
             </div>
         }
 
