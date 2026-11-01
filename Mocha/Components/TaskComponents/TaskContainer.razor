@@ -21,11 +21,18 @@
     private List<MochaTask> completedTasks = [];
     private MochaTask? taskToEdit;
 
+    private MochaProject? projectFilter;
+    private string projectChipStyleString = string.Empty;
+
     protected override void OnContextChanged()
     {
         if (Context.Loaded)
         {
             var tasks = MochaTask.DATABASE_COLLECTION.FindAllWhere(t => t.OwningUserId == Context.User!.Guid && Filter.Invoke(t)).ToList();
+            projectFilter = Context.PersistentProjectFilter;
+
+            if (projectFilter != null) tasks = tasks.Filter(t => t.ProjectId == projectFilter.Id);
+
             if (Context.User!.PrivacyEnabled)
             {
                 tasks = tasks.Filter(t => !t.IsPrivacySensitive);
@@ -46,7 +53,14 @@
             {
                 modalOpen = true;
             }
+
+            projectChipStyleString = projectFilter == null ? string.Empty : $"color: {projectFilter.ColorHex} !important; border-color: {projectFilter.ColorHex} !important";
         }
+    }
+
+    private void setFilteredProject(MochaProject? project)
+    {
+        Context.SetPersistentProjectFilter(project);
     }
 
     private void open()
@@ -62,20 +76,48 @@
 
     private MochaTask append(MochaTask task)
     {
-
         if (IsTaskDumpView) return task;
         return task with { ScheduledDate = Context.Day!.Date };
     }
 }
 
-<div class="overlay @( modalOpen? "active" : "")" @onclick="close"></div>
+<div class="overlay @(modalOpen ? "active" : "")" @onclick="close"></div>
 
 <div class="row">
     <div class="max">
-        <h5>Active Tasks</h5>
+        <h5>Active Tasks (@todoTasks.Count)</h5>
     </div>
+
+    <!-- Project Filter -->
+    <div>
+        <button class="border on-surface-opacity-75" style="@projectChipStyleString">
+            <Icon Type="@Icons.PROJECTS"/>
+            @(projectFilter?.Name ?? "Project Filter")
+        </button>
+        <menu class="no-wrap">
+            @if (projectFilter != null)
+            {
+                <li @onclick="() => setFilteredProject(null)">
+                    <i>@Icons.CLOSE</i>
+                    <span>Clear</span>
+                </li>
+            }
+
+            @foreach (var project in Context.User!.FindAllProjects())
+            {
+
+                <li @onclick="() => setFilteredProject(project)">
+                    <i>@Icons.PROJECTS</i>
+                    <span>@project.Name</span>
+                </li>
+            }
+        </menu>
+    </div>
+
+    <!-- Add new task -->
     <button class="border on-surface-opacity-75" @onclick="open">
-        <Icon Type="@Icons.ADD"/>Create
+        <Icon Type="@Icons.ADD"/>
+        Create
     </button>
 </div>
 <br>
@@ -87,17 +129,16 @@
 
 @if (modalOpen)
 {
-    <TaskEditModal Context="Context" TaskToEdit="taskToEdit" Callback="_ => close()"  Append="append"/>
+    <TaskEditModal Context="Context" TaskToEdit="taskToEdit" Callback="_ => close()" Append="append"/>
 }
 
 <Gap Size="24px"/>
-
 
 @if (ShowCompletedTasksSeparately)
 {
     <div class="row">
         <div class="max">
-            <h5>Completed Tasks</h5>
+            <h5>Completed Tasks (@completedTasks.Count)</h5>
         </div>
     </div>
     <br>

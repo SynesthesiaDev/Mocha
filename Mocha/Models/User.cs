@@ -64,4 +64,5 @@ public record User(
     );
 
     public IEnumerable<Day> FindAllDays() => Day.DATABASE_COLLECTION.FindAllWhere(d => d.User == Guid);
+    public IEnumerable<MochaProject> FindAllProjects() => MochaProject.DB_COLLECTION.FindAllWhere(d => d.OwningUserId == Guid);
 }

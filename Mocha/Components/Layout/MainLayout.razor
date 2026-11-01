@@ -32,6 +32,16 @@
         StateHasChanged();
     }
 
+    private void updatePersistentProjectFilter()
+    {
+        if(user == null) return;
+        var persistentData = PersistentUserData.DATABASE_COLLECTION.FindOrNull(user.Guid);
+        if(persistentData == null || persistentData.FilterProjectId == null) return;
+
+        var project = MochaProject.DB_COLLECTION.FindOrNull(persistentData.FilterProjectId.Value);
+        context.SetPersistentProjectFilter(project);
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
@@ -50,6 +60,7 @@
         }
 
         updateDay();
+        updatePersistentProjectFilter();
     }
 
     protected override void OnParametersSet() => updateDay();

@@ -11,6 +11,7 @@ public class MochaContext
     public User? User { get; private set; }
     public Day? Day { get; private set; }
 
+    public MochaProject? PersistentProjectFilter { get; private set; }
     public MochaTask? RequestedTaskEdit { get; private set; }
     public MochaProject? RequestedProjectEdit { get; private set; }
 
@@ -29,6 +30,14 @@ public class MochaContext
     public void SetUser(User? user)
     {
         User = user;
+        NotifyChanged();
+    }
+
+    public void SetPersistentProjectFilter(MochaProject? project)
+    {
+        PersistentProjectFilter = project;
+        var persistentData = PersistentUserData.DATABASE_COLLECTION.FindOrAdd(User!.Guid, _ => new PersistentUserData(User!.Guid, null));
+        PersistentUserData.DATABASE_COLLECTION.Insert(User!.Guid, persistentData with { FilterProjectId = project?.Id });
         NotifyChanged();
     }
 
@@ -51,6 +60,7 @@ public class MochaContext
             var newTask = task with { ElapsedTime = focusedTask.TotalElapsed };
             MochaTask.DATABASE_COLLECTION.Insert(newTask.Id, newTask);
         }
+
         NotifyChanged();
     }
 
