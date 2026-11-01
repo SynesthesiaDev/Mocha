@@ -17,7 +17,15 @@
         focusedTask = Context.FocusedTask;
         if (focusedTask == null) return;
 
-        resolvedTask = MochaTask.DATABASE_COLLECTION.Find(focusedTask.TaskId);
+        resolvedTask = MochaTask.DATABASE_COLLECTION.FindOrNull(focusedTask.TaskId);
+        if (resolvedTask == null)
+        {
+            focusedTask = null;
+            resolvedTask = null;
+            Context.SetFocused(null);
+            Dispose();
+            return;
+        }
         active = !focusedTask.Paused;
 
         startTimer();
