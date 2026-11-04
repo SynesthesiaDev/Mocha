@@ -39,8 +39,7 @@ public record HealthStatisticsReport(
 {
     public static readonly HealthStatisticsReport DEFAULT = new HealthStatisticsReport(0, 0.0, 0.0, 0, 0, 0, 0, DateTimeOffset.Now, DateTimeOffset.Now, DateTimeOffset.Now);
 
-    public static readonly IBinaryCodec<HealthStatisticsReport> BINARY_CODEC = BinaryCodecs
-        .For<HealthStatisticsReport>()
+    public static readonly IBinaryCodec<HealthStatisticsReport> BINARY_CODEC = BinaryCodecs.For<HealthStatisticsReport>()
         .Field(BinaryCodecs.LONG, c => c.Steps)
         .Field(BinaryCodecs.DOUBLE, c => c.DistanceWalkedKm)
         .Field(BinaryCodecs.DOUBLE, c => c.CaloriesBurned)

@@ -6,7 +6,7 @@ using Mocha.Util;
 
 namespace Mocha.Models.API.Messages;
 
-public record RegisterMobileSessionResponse(string BearerToken, DateTimeOffset BearerExpiration, Guid SessionId, User User)
+public record RegisterMobileSessionResponse(string BearerToken, DateTimeOffset BearerExpiration, Guid SessionId, UserInfo UserInfo)
     : IApiMessage<RegisterMobileSessionResponse>
 {
     public static readonly Codec<RegisterMobileSessionResponse> CODEC = StructCodec
@@ -14,7 +14,7 @@ public record RegisterMobileSessionResponse(string BearerToken, DateTimeOffset B
         .Field("BearerToken", Codecs.STRING, c => c.BearerToken)
         .Field("BearerExpiration", ExtraCodecs.DATE_TIME_OFFSET, c => c.BearerExpiration)
         .Field("SessionId", Codecs.GUID, c => c.SessionId)
-        .Field("User", User.CODEC, c => c.User)
+        .Field("UserInfo", Models.UserInfo.CODEC, c => c.UserInfo)
         .Build((bearertoken, bearerexpiration, sessionid, user) => new RegisterMobileSessionResponse(bearertoken, bearerexpiration, sessionid, user));
 
 

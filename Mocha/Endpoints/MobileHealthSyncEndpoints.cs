@@ -21,7 +21,7 @@ public static class MobileHealthSyncEndpoint
             if (request.AssertDecodedNotNull()) return;
 
             var user = request.ResolveUser()!;
-            var day = Day.GetOrCreate(DateTimeOffset.UtcNow.ToDateOnly(), user);
+            var day = Day.GetOrCreate(request.Decoded!.ReportedTime.ToDateOnly(), user);
             var newDay = day with { LatestHealthStatistics = request.Decoded! };
 
             Day.DATABASE_COLLECTION.Insert(newDay.Date, newDay);

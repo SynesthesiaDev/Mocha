@@ -60,7 +60,9 @@ public static class MobileAppLinkEndpoint
             ApiToken.DB_COLLECTION.Insert(hash, bearer);
             User.DB_COLLECTION.Insert(user.Guid, user);
 
-            var response = new ApiResponse<RegisterMobileSessionResponse>(null, new RegisterMobileSessionResponse(bearerRaw, expiration, sessionId, user));
+
+            var userInfo = new UserInfo(user.DisplayName, user.ProfileImageUrl);
+            var response = new ApiResponse<RegisterMobileSessionResponse>(null, new RegisterMobileSessionResponse(bearerRaw, expiration, sessionId, userInfo));
 
             context.Response.WriteResponse(response);
         });
